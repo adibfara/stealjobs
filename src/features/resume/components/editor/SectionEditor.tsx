@@ -1,6 +1,19 @@
 import * as React from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
-import { useSortable } from '@dnd-kit/sortable';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { LinkedInput } from './LinkedInput';
@@ -32,6 +45,8 @@ export function SectionEditor({ section, onChange, onDelete, index }: SectionEdi
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: section.id });
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
   function update(patch: Partial<Section>) {
     onChange({ ...section, ...patch });
   }
@@ -46,6 +61,16 @@ export function SectionEditor({ section, onChange, onDelete, index }: SectionEdi
 
   function removeSubSection(id: string) {
     update({ subsections: section.subsections.filter(ss => ss.id !== id) });
+  }
+
+  function onSubSectionDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const ids = section.subsections.map(ss => ss.id);
+      const from = ids.indexOf(active.id as string);
+      const to = ids.indexOf(over.id as string);
+      update({ subsections: arrayMove(section.subsections, from, to) });
+    }
   }
 
   return (
@@ -113,14 +138,21 @@ export function SectionEditor({ section, onChange, onDelete, index }: SectionEdi
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Entries
             </label>
-            {section.subsections.map(ss => (
-              <SubSectionEditor
-                key={ss.id}
-                subsection={ss}
-                onChange={s => updateSubSection(ss.id, s)}
-                onDelete={() => removeSubSection(ss.id)}
-              />
-            ))}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onSubSectionDragEnd}>
+              <SortableContext items={section.subsections.map(ss => ss.id)} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-2">
+                  {section.subsections.map(ss => (
+                    <SubSectionEditor
+                      key={ss.id}
+                      id={ss.id}
+                      subsection={ss}
+                      onChange={s => updateSubSection(ss.id, s)}
+                      onDelete={() => removeSubSection(ss.id)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
             <Button variant="outline" size="sm" onClick={addSubSection} className="self-start gap-1.5">
               <Plus className="h-4 w-4" /> Add Entry
             </Button>

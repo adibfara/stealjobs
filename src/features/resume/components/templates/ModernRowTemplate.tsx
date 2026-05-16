@@ -133,7 +133,7 @@ function SubSectionRender({ss}: { ss: SubSection }) {
                                 fontSize: t.sizeTiny,
                                 background: t.tagSecondaryBg,
                                 color: t.tagSecondaryColor,
-                                borderRadius: '3pt',
+                                borderRadius: '5pt',
                                 padding: '1.5pt 6pt',
                                 border: t.tagSecondaryBorder
                             }}>

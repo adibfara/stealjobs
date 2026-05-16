@@ -24,6 +24,7 @@ interface SubSectionEditorProps {
   subsection: SubSection;
   onChange: (s: SubSection) => void;
   onDelete: () => void;
+  id?: string;
 }
 
 // ── Sortable bullet row ──────────────────────────────────────────────────────
@@ -212,9 +213,17 @@ function SortableImage({ image, onUpdate, onRemove }: SortableImageProps) {
 
 // ── Main editor ──────────────────────────────────────────────────────────────
 
-export function SubSectionEditor({ subsection, onChange, onDelete }: SubSectionEditorProps) {
+export function SubSectionEditor({ subsection, onChange, onDelete, id }: SubSectionEditorProps) {
   const [collapsed, setCollapsed] = React.useState(false);
 
+  const {
+    attributes: sortableAttrs,
+    listeners: sortableListeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: id ?? subsection.id });
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -324,9 +333,22 @@ export function SubSectionEditor({ subsection, onChange, onDelete }: SubSectionE
   }, [collapsed]);
 
   return (
-    <div className="rounded-lg border border-border bg-background">
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn('rounded-lg border border-border bg-background', isDragging && 'opacity-50')}
+    >
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2">
+        <button
+          type="button"
+          {...sortableAttrs}
+          {...sortableListeners}
+          className="flex h-5 w-5 shrink-0 cursor-grab items-center justify-center rounded text-muted-foreground/40 hover:text-muted-foreground active:cursor-grabbing"
+          tabIndex={-1}
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
         <button
           type="button"
           onClick={() => setCollapsed(c => !c)}
