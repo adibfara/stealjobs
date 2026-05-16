@@ -91,7 +91,7 @@ export const modernTheme: TemplateTheme = {
   sizeSmall: '8.5pt',
   sizeTiny: '8pt',
 
-  pagePaddingV: '32pt',
+  pagePaddingV: '12pt',
   pagePaddingH: '28pt',
   sectionGap: '16pt',
   subsectionGap: '12pt',
