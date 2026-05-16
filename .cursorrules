@@ -1,0 +1,30 @@
+# Project Principles
+
+## Code Style
+
+- Do not add comments to code
+- Do not create index.ts barrel files - import directly from actual source files
+- Keep libraries to a minimum
+
+## Project Structure
+
+- Use feature-based folder structure
+- Each feature contains `hooks/` and `components/` folders
+- Each feature has a root component (e.g., `CounterPage.tsx` for the counter feature)
+
+## Separation of Concerns
+
+- Hooks contain all logic (state, effects, API calls, navigation)
+- Components handle only UI rendering
+- Components reference logic from hooks
+
+## Styling
+
+- Keep inline styling in components minimal - only use paddings, margins, and layout
+- Colors, shadows, typography, and theming must come from the design system tokens
+- Use CSS variables from `index.css` for design tokens (e.g., `var(--spacing-md)`, `var(--text-lg)`)
+
+## Git
+
+- When adding new project-related files, run `git add` on them
+
