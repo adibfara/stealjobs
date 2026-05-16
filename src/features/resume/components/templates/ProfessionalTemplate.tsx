@@ -1,13 +1,11 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { LinkedText, ImagesBlock } from './shared';
 import type { ResumeData, SubSection } from './shared';
-
-const SERIF = "'Lora', Georgia, serif";
-const SANS = "'Ubuntu', 'Helvetica Neue', Arial, sans-serif";
+import { professionalTheme as t } from './templateThemes';
 
 const HR: React.CSSProperties = {
   border: 'none',
-  borderTop: '1px solid #ccc',
+  borderTop: `${t.dividerWidth} solid ${t.dividerColor}`,
   margin: '0',
 };
 
@@ -16,63 +14,60 @@ interface Props { resume: ResumeData; }
 function T1({ ss }: { ss: SubSection }) {
   return (
     <div style={{ marginBottom: '20pt' }}>
-      {/* Job title row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <LinkedText
           text={ss.title ?? ''}
           link={ss.titleLink}
-          style={{ fontFamily: SANS, fontWeight: 700, fontSize: '13px', color: '#1a1a1a' }}
+          style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: t.sizeSubsectionTitle, color: t.colorText }}
         />
         {ss.date && (
           <LinkedText
             text={ss.date}
             link={ss.dateLink}
-            style={{ fontFamily: SANS, fontWeight: 400, fontSize: '13px', color: '#1a1a1a', whiteSpace: 'nowrap', marginLeft: '16px' }}
+            style={{ fontFamily: t.fontBody, fontWeight: 400, fontSize: t.sizeSubsectionTitle, color: t.colorText, whiteSpace: 'nowrap', marginLeft: '16px' }}
           />
         )}
       </div>
-      {/* Company / location */}
       {ss.subtitle && (
         <LinkedText
           text={ss.subtitle}
           link={ss.subtitleLink}
-          style={{ display: 'block', fontFamily: SANS, fontWeight: 400, fontSize: '12px', color: '#555', marginTop: '1px' }}
+          style={{ display: 'block', fontFamily: t.fontBody, fontWeight: 400, fontSize: t.sizeBody, color: t.colorMuted, marginTop: '1px' }}
         />
       )}
       {ss.text && (
-        <p style={{ fontFamily: SANS, fontSize: '12px', color: '#1a1a1a', lineHeight: 1.55, margin: '5px 0 4px 0', textAlign: 'justify' }}>
+        <p style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.55, margin: '5px 0 4px 0', textAlign: 'justify' }}>
           {ss.text}
         </p>
       )}
-      {ss.tagsPosition === 'top' && ss.tags.filter(t => t.text).length > 0 && (
+      {ss.tagsPosition === 'top' && ss.tags.filter(tg => tg.text).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
-          {ss.tags.filter(t => t.text).map(t => (
-            <span key={t.id} style={{ fontFamily: SANS, fontSize: '11px', color: '#444', background: '#f0f0f0', border: '0.5px solid #d0d0d0', borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
-              {t.text}
+          {ss.tags.filter(tg => tg.text).map(tg => (
+            <span key={tg.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeTiny, color: t.tagSecondaryColor, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
+              {tg.text}
             </span>
           ))}
         </div>
       )}
-      {/* Bullets */}
       {ss.bullets.filter(b => b.text).length > 0 && (
         <ul style={{ margin: '6px 0 0 0', paddingLeft: '18px', listStyleType: 'disc' }}>
           {ss.bullets.map(b => b.text && (
-            <li key={b.id} style={{ fontFamily: SANS, fontSize: '12px', color: '#1a1a1a', lineHeight: 1.55, marginBottom: '7px' }}>
+            <li key={b.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.55, marginBottom: '7px' }}>
               <LinkedText text={b.text} link={b.link} />
             </li>
           ))}
         </ul>
       )}
-      {(ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(t => t.text).length > 0 && (
+      {(ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(tg => tg.text).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-          {ss.tags.filter(t => t.text).map(t => (
-            <span key={t.id} style={{ fontFamily: SANS, fontSize: '11px', color: '#444', background: '#f0f0f0', border: '0.5px solid #d0d0d0', borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
-              {t.text}
+          {ss.tags.filter(tg => tg.text).map(tg => (
+            <span key={tg.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeTiny, color: t.tagSecondaryColor, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
+              {tg.text}
             </span>
           ))}
         </div>
       )}
-      <ImagesBlock ss={ss} accentColor="#1a1a1a" />
+      <ImagesBlock ss={ss} accentColor={t.colorAccent} />
     </div>
   );
 }
@@ -84,13 +79,13 @@ function T2({ ss }: { ss: SubSection }) {
         <LinkedText
           text={ss.title ?? ''}
           link={ss.titleLink}
-          style={{ fontFamily: SANS, fontWeight: 700, fontSize: '13px', color: '#1a1a1a' }}
+          style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: t.sizeSubsectionTitle, color: t.colorText }}
         />
         {ss.date && (
           <LinkedText
             text={ss.date}
             link={ss.dateLink}
-            style={{ fontFamily: SANS, fontWeight: 400, fontSize: '13px', color: '#1a1a1a', whiteSpace: 'nowrap', marginLeft: '16px' }}
+            style={{ fontFamily: t.fontBody, fontWeight: 400, fontSize: t.sizeSubsectionTitle, color: t.colorText, whiteSpace: 'nowrap', marginLeft: '16px' }}
           />
         )}
       </div>
@@ -98,19 +93,19 @@ function T2({ ss }: { ss: SubSection }) {
         <LinkedText
           text={ss.subtitle}
           link={ss.subtitleLink}
-          style={{ display: 'block', fontFamily: SANS, fontWeight: 400, fontSize: '12px', color: '#484848', marginTop: '2px' }}
+          style={{ display: 'block', fontFamily: t.fontBody, fontWeight: 400, fontSize: t.sizeBody, color: t.colorFaint, marginTop: '2px' }}
         />
       )}
       {ss.text && (
-        <p style={{ fontFamily: SANS, fontSize: '12px', color: '#1a1a1a', lineHeight: 1.5, margin: '4px 0 3px 0', textAlign: 'justify' }}>
+        <p style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.5, margin: '4px 0 3px 0', textAlign: 'justify' }}>
           {ss.text}
         </p>
       )}
-      {ss.tagsPosition === 'top' && ss.tags.filter(t => t.text).length > 0 && (
+      {ss.tagsPosition === 'top' && ss.tags.filter(tg => tg.text).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
-          {ss.tags.filter(t => t.text).map(t => (
-            <span key={t.id} style={{ fontFamily: SANS, fontSize: '11px', color: '#444', background: '#f0f0f0', border: '0.5px solid #d0d0d0', borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
-              {t.text}
+          {ss.tags.filter(tg => tg.text).map(tg => (
+            <span key={tg.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeTiny, color: t.tagSecondaryColor, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
+              {tg.text}
             </span>
           ))}
         </div>
@@ -118,22 +113,22 @@ function T2({ ss }: { ss: SubSection }) {
       {ss.bullets.filter(b => b.text).length > 0 && (
         <ul style={{ margin: '5px 0 0 0', paddingLeft: '18px', listStyleType: 'disc' }}>
           {ss.bullets.map(b => b.text && (
-            <li key={b.id} style={{ fontFamily: SANS, fontSize: '12px', color: '#1a1a1a', lineHeight: 1.5, marginBottom: '5px' }}>
+            <li key={b.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.5, marginBottom: '5px' }}>
               <LinkedText text={b.text} link={b.link} />
             </li>
           ))}
         </ul>
       )}
-      {(ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(t => t.text).length > 0 && (
+      {(ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(tg => tg.text).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '5px' }}>
-          {ss.tags.filter(t => t.text).map(t => (
-            <span key={t.id} style={{ fontFamily: SANS, fontSize: '11px', color: '#444', background: '#f0f0f0', border: '0.5px solid #d0d0d0', borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
-              {t.text}
+          {ss.tags.filter(tg => tg.text).map(tg => (
+            <span key={tg.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeTiny, color: t.tagSecondaryColor, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
+              {tg.text}
             </span>
           ))}
         </div>
       )}
-      <ImagesBlock ss={ss} accentColor="#1a1a1a" />
+      <ImagesBlock ss={ss} accentColor={t.colorAccent} />
     </div>
   );
 }
@@ -141,7 +136,7 @@ function T2({ ss }: { ss: SubSection }) {
 function T3({ ss }: { ss: SubSection }) {
   const items = [
     ...ss.bullets.filter(b => b.text).map(b => ({ text: b.text, link: b.link })),
-    ...ss.tags.filter(t => t.text).map(t => ({ text: t.text, link: undefined })),
+    ...ss.tags.filter(tg => tg.text).map(tg => ({ text: tg.text, link: undefined })),
   ];
   if (items.length === 0) return null;
 
@@ -155,11 +150,11 @@ function T3({ ss }: { ss: SubSection }) {
         <LinkedText
           text={ss.title}
           link={ss.titleLink}
-          style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: '13px', color: '#1a1a1a', marginBottom: '6px' }}
+          style={{ display: 'block', fontFamily: t.fontBody, fontWeight: 700, fontSize: t.sizeSubsectionTitle, color: t.colorText, marginBottom: '6px' }}
         />
       )}
       {ss.text && (
-        <p style={{ fontFamily: SANS, fontSize: '12px', color: '#1a1a1a', lineHeight: 1.5, margin: '0 0 5px 0', textAlign: 'justify' }}>
+        <p style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.5, margin: '0 0 5px 0', textAlign: 'justify' }}>
           {ss.text}
         </p>
       )}
@@ -167,14 +162,14 @@ function T3({ ss }: { ss: SubSection }) {
         {columns.map((col, ci) => (
           <ul key={ci} style={{ margin: 0, paddingLeft: '18px', listStyleType: 'disc' }}>
             {col.map((item, ii) => (
-              <li key={ii} style={{ fontFamily: SANS, fontSize: '12px', color: '#1a1a1a', lineHeight: 1.5, marginBottom: '5px' }}>
+              <li key={ii} style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.5, marginBottom: '5px' }}>
                 <LinkedText text={item.text} link={item.link} />
               </li>
             ))}
           </ul>
         ))}
       </div>
-      <ImagesBlock ss={ss} accentColor="#1a1a1a" />
+      <ImagesBlock ss={ss} accentColor={t.colorAccent} />
     </div>
   );
 }
@@ -189,70 +184,80 @@ export function ProfessionalTemplate({ resume }: Props) {
   return (
     <div
       style={{
-        fontFamily: SANS,
-        fontSize: '13px',
-        color: '#1a1a1a',
-        backgroundColor: '#ffffff',
-        padding: '36px 48px',
+        fontFamily: t.fontBody,
+        fontSize: t.sizeBody,
+        color: t.colorText,
+        backgroundColor: t.colorBg,
+        padding: `${t.pagePaddingV} ${t.pagePaddingH}`,
         minHeight: '100%',
         boxSizing: 'border-box',
       }}
     >
-      {/* Name */}
-      {resume.title && (
-        <LinkedText
-          text={resume.title}
-          link={resume.titleLink}
-          style={{
-            display: 'block',
-            fontFamily: SERIF,
-            fontSize: '38px',
-            fontWeight: 400,
-            color: '#1a1a1a',
-            lineHeight: 1.1,
-            marginBottom: '10px',
-          }}
-        />
-      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: resume.title ? '0' : '0' }}>
+        {resume.photo && (
+          <img
+            src={resume.photo}
+            alt=""
+            style={{
+              width: '60pt',
+              height: '60pt',
+              borderRadius: '50%',
+              objectFit: 'cover',
+              flexShrink: 0,
+            }}
+          />
+        )}
+        {resume.title && (
+          <LinkedText
+            text={resume.title}
+            link={resume.titleLink}
+            style={{
+              display: 'block',
+              fontFamily: t.fontDisplay,
+              fontSize: t.sizeTitle,
+              fontWeight: 400,
+              color: t.colorText,
+              lineHeight: 1.1,
+              marginBottom: '10px',
+            }}
+          />
+        )}
+      </div>
 
-      {/* HR between name and contacts */}
       <hr style={HR} />
 
-      {/* Contacts */}
       {resume.contacts.length > 0 && (
         <div
           style={{
             display: 'flex',
             flexWrap: 'wrap',
-            fontFamily: SANS,
-            fontSize: '12px',
-            color: '#555',
+            fontFamily: t.fontBody,
+            fontSize: t.sizeBody,
+            color: t.colorMuted,
             margin: '8px 0 0 0',
           }}
         >
           {resume.contacts.map((c, i) => (
             <React.Fragment key={c.id}>
-              {i > 0 && <span style={{ margin: '0 7px', color: '#888' }}>•</span>}
-              <LinkedText text={c.text} link={c.link} style={{ color: '#555' }} />
+              {i > 0 && <span style={{ margin: '0 7px', color: '#888' }}>â€¢</span>}
+              <LinkedText text={c.text} link={c.link} style={{ color: t.colorMuted }} />
             </React.Fragment>
           ))}
         </div>
       )}
 
-      {/* Subtitle / tagline */}
       {resume.subtitle && (
         <div style={{ marginTop: '6px' }}>
           <LinkedText
             text={resume.subtitle}
             link={resume.subtitleLink}
-            style={{ fontFamily: SANS, fontSize: '12px', color: '#555', fontStyle: 'italic' }}
+            style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorMuted, fontStyle: 'italic' }}
           />
         </div>
       )}
 
-      {/* Sections */}
       {resume.sections.map(section => (
-        <div key={section.id} style={{ marginTop: '26px' }}>
+        <div key={section.id} style={{ marginTop: t.sectionGap }}>
           {section.title && (
             <div style={{ marginBottom: '8px' }}>
               <LinkedText
@@ -260,10 +265,10 @@ export function ProfessionalTemplate({ resume }: Props) {
                 link={section.titleLink}
                 style={{
                   display: 'block',
-                  fontFamily: SERIF,
-                  fontSize: '21px',
+                  fontFamily: t.fontDisplay,
+                  fontSize: t.sizeSectionHeading,
                   fontWeight: 400,
-                  color: '#1a1a1a',
+                  color: t.colorText,
                   marginBottom: '4px',
                 }}
               />

@@ -67,6 +67,7 @@ export interface ResumeData {
   titleLink?: string;
   subtitle?: string;
   subtitleLink?: string;
+  photo?: string;
   contacts: Contact[];
   sections: Section[];
   selectedTemplate: string;

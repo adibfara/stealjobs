@@ -1,6 +1,7 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { LinkedText, TemplateIcon, ImagesBlock } from './shared';
 import type { ResumeData, SubSection } from './shared';
+import { classicTheme as t } from './templateThemes';
 
 interface Props {
   resume: ResumeData;
@@ -11,7 +12,7 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
   const showSubtitle = ss.type !== 2 && ss.subtitle;
 
   return (
-    <div style={{ marginBottom: '10pt' }}>
+    <div style={{ marginBottom: t.subsectionGap }}>
       {hasTitleRow && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2pt' }}>
           <div style={{ flex: 1 }}>
@@ -19,16 +20,16 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
               <LinkedText
                 text={ss.title}
                 link={ss.titleLink}
-                style={{ fontWeight: 600, fontSize: '10.5pt', color: '#111' }}
+                style={{ fontWeight: 600, fontSize: t.sizeSubsectionTitle, color: t.colorText }}
               />
             )}
             {showSubtitle && (
               <>
-                {ss.title && <span style={{ color: '#555', fontSize: '10pt' }}> · </span>}
+                {ss.title && <span style={{ color: t.colorMuted, fontSize: t.sizeBody }}> Â· </span>}
                 <LinkedText
                   text={ss.subtitle}
                   link={ss.subtitleLink}
-                  style={{ fontStyle: 'italic', fontSize: '10pt', color: '#444' }}
+                  style={{ fontStyle: 'italic', fontSize: t.sizeBody, color: t.colorMuted }}
                 />
               </>
             )}
@@ -37,24 +38,22 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
             <LinkedText
               text={ss.date}
               link={ss.dateLink}
-              style={{ fontSize: '9.5pt', color: '#666', marginLeft: '12pt', whiteSpace: 'nowrap' }}
+              style={{ fontSize: t.sizeSmall, color: t.colorFaint, marginLeft: '12pt', whiteSpace: 'nowrap' }}
             />
           )}
         </div>
       )}
 
-      {/* Tags — rendered top or bottom based on tagsPosition */}
       {(() => {
         const filteredTags = ss.tags.filter(t => t.text);
         if (filteredTags.length === 0) return null;
         const isTop = ss.tagsPosition === 'top';
         const isType3 = ss.type === 3;
-        const showHere = isTop || isType3;
-        if (!showHere) return null;
+        if (!isTop && !isType3) return null;
         return (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4pt', marginBottom: '4pt' }}>
             {filteredTags.map(tag => (
-              <span key={tag.id} style={{ fontSize: '8.5pt', background: '#f0f0f0', border: '0.5pt solid #ddd', borderRadius: '3pt', padding: '1pt 5pt', color: '#333' }}>
+              <span key={tag.id} style={{ fontSize: t.sizeTiny, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3pt', padding: '1pt 5pt', color: t.tagSecondaryColor }}>
                 {tag.text}
               </span>
             ))}
@@ -62,33 +61,30 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
         );
       })()}
 
-      {/* Text */}
       {ss.text && (
-        <p style={{ margin: '3pt 0 4pt 0', fontSize: '10pt', color: '#222', lineHeight: 1.4, textAlign: 'justify' }}>
+        <p style={{ margin: '3pt 0 4pt 0', fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.4, textAlign: 'justify' }}>
           {ss.text}
         </p>
       )}
 
-      {/* Bullets */}
       {ss.bullets.filter(b => b.text).length > 0 && (
         <ul style={{ margin: '3pt 0 0 0', paddingLeft: '14pt', listStyleType: 'disc' }}>
           {ss.bullets.filter(b => b.text).map(b => (
-            <li key={b.id} style={{ fontSize: '10pt', color: '#222', marginBottom: '2pt', lineHeight: 1.4 }}>
+            <li key={b.id} style={{ fontSize: t.sizeBody, color: t.colorText, marginBottom: '2pt', lineHeight: 1.4 }}>
               <LinkedText text={b.text} link={b.link} />
             </li>
           ))}
         </ul>
       )}
 
-      {/* Tags at bottom (default, type 1 & 2, not overridden to top) */}
       {(() => {
-        const filteredTags = ss.tags.filter(t => t.text);
+        const filteredTags = ss.tags.filter(tg => tg.text);
         if (filteredTags.length === 0) return null;
         if (ss.tagsPosition === 'top' || ss.type === 3) return null;
         return (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4pt', marginTop: '4pt' }}>
             {filteredTags.map(tag => (
-              <span key={tag.id} style={{ fontSize: '8.5pt', background: '#f5f5f5', border: '0.5pt solid #e0e0e0', borderRadius: '3pt', padding: '1pt 5pt', color: '#444' }}>
+              <span key={tag.id} style={{ fontSize: t.sizeTiny, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3pt', padding: '1pt 5pt', color: t.tagSecondaryColor }}>
                 {tag.text}
               </span>
             ))}
@@ -96,7 +92,7 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
         );
       })()}
 
-      <ImagesBlock ss={ss} accentColor="#111" />
+      <ImagesBlock ss={ss} accentColor={t.colorAccent} />
     </div>
   );
 }
@@ -105,28 +101,42 @@ export function ClassicTemplate({ resume }: Props) {
   return (
     <div
       style={{
-        fontFamily: "'Crimson Pro', 'EB Garamond', Georgia, serif",
-        fontSize: '10.5pt',
-        color: '#111',
-        backgroundColor: '#fff',
-        padding: '36pt 48pt',
+        fontFamily: t.fontBody,
+        fontSize: t.sizeBody,
+        color: t.colorText,
+        backgroundColor: t.colorBg,
+        padding: `${t.pagePaddingV} ${t.pagePaddingH}`,
         minHeight: '100%',
         boxSizing: 'border-box',
       }}
     >
-      {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '16pt' }}>
+        {resume.photo && (
+          <div style={{ marginBottom: '10pt' }}>
+            <img
+              src={resume.photo}
+              alt=""
+              style={{
+                width: '72pt',
+                height: '72pt',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                display: 'inline-block',
+              }}
+            />
+          </div>
+        )}
         {resume.title && (
           <LinkedText
             text={resume.title}
             link={resume.titleLink}
             style={{
               display: 'block',
-              fontFamily: "'DM Serif Display', Georgia, serif",
-              fontSize: '26pt',
+              fontFamily: t.fontDisplay,
+              fontSize: t.sizeTitle,
               fontWeight: 400,
               letterSpacing: '-0.5pt',
-              color: '#111',
+              color: t.colorText,
               lineHeight: 1.1,
               marginBottom: '4pt',
             }}
@@ -138,15 +148,14 @@ export function ClassicTemplate({ resume }: Props) {
             link={resume.subtitleLink}
             style={{
               display: 'block',
-              fontSize: '12pt',
+              fontSize: t.sizeSubtitle,
               fontStyle: 'italic',
-              color: '#555',
+              color: t.colorAccentLight,
               marginBottom: '8pt',
             }}
           />
         )}
 
-        {/* Contacts */}
         {resume.contacts.length > 0 && (
           <div
             style={{
@@ -154,17 +163,17 @@ export function ClassicTemplate({ resume }: Props) {
               justifyContent: 'center',
               flexWrap: 'wrap',
               gap: '4pt 12pt',
-              fontSize: '9.5pt',
-              color: '#444',
+              fontSize: t.sizeSmall,
+              color: t.colorMuted,
               marginTop: '6pt',
             }}
           >
             {resume.contacts.map((c, i) => (
               <React.Fragment key={c.id}>
-                {i > 0 && <span style={{ color: '#bbb' }}>·</span>}
+                {i > 0 && <span style={{ color: '#bbb' }}>Â·</span>}
                 <span style={{ display: 'flex', alignItems: 'center', gap: '3pt' }}>
                   <TemplateIcon name={c.icon} size={10} />
-                  <LinkedText text={c.text} link={c.link} style={{ color: '#333' }} />
+                  <LinkedText text={c.text} link={c.link} style={{ color: t.colorMuted }} />
                 </span>
               </React.Fragment>
             ))}
@@ -172,12 +181,10 @@ export function ClassicTemplate({ resume }: Props) {
         )}
       </div>
 
-      {/* Divider */}
-      <div style={{ borderTop: '1.5pt solid #111', marginBottom: '14pt' }} />
+      <div style={{ borderTop: `${t.dividerWidth} solid ${t.dividerColor}`, marginBottom: '14pt' }} />
 
-      {/* Sections */}
       {resume.sections.map(section => (
-        <div key={section.id} style={{ marginBottom: '14pt' }}>
+        <div key={section.id} style={{ marginBottom: t.sectionGap }}>
           {section.title && (
             <div style={{ marginBottom: '6pt' }}>
               <LinkedText
@@ -185,13 +192,13 @@ export function ClassicTemplate({ resume }: Props) {
                 link={section.titleLink}
                 style={{
                   display: 'block',
-                  fontFamily: "'DM Serif Display', Georgia, serif",
-                  fontSize: '12.5pt',
+                  fontFamily: t.fontDisplay,
+                  fontSize: t.sizeSectionHeading,
                   fontWeight: 400,
                   letterSpacing: '0.5pt',
                   textTransform: 'uppercase',
-                  color: '#111',
-                  borderBottom: '0.5pt solid #ccc',
+                  color: t.colorText,
+                  borderBottom: `0.5pt solid ${t.dividerColor}`,
                   paddingBottom: '3pt',
                   marginBottom: '6pt',
                 }}
