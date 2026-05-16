@@ -192,6 +192,12 @@
     background: #fff;
   }
 
+  /* Preserve links in PDF output */
+  #resume-print-area-print a[href] {
+    color: inherit !important;
+    /*text-decoration: underline !important;*/
+  }
+
   @page {
     margin: 0;
     size: letter;
