@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LinkedText, TemplateIcon } from './shared';
+import { LinkedText, TemplateIcon, ImagesBlock } from './shared';
 import type { ResumeData, SubSection } from './shared';
 
 interface Props {
@@ -56,24 +56,20 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
         )}
       </div>
 
-      {ss.type === 3 && ss.tags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3pt', marginBottom: '4pt', marginTop: '3pt' }}>
-          {ss.tags.map(tag => (
-            <span
-              key={tag.id}
-              style={{
-                fontSize: '8pt',
-                background: '#0f3460',
-                color: '#fff',
-                borderRadius: '3pt',
-                padding: '1pt 5pt',
-              }}
-            >
-              {tag.text}
-            </span>
-          ))}
-        </div>
-      )}
+      {(() => {
+        const ft = ss.tags.filter(t => t.text);
+        if (!ft.length) return null;
+        if (ss.tagsPosition !== 'top' && ss.type !== 3) return null;
+        return (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3pt', marginBottom: '4pt', marginTop: '3pt' }}>
+            {ft.map(tag => (
+              <span key={tag.id} style={{ fontSize: '8pt', background: '#0f3460', color: '#fff', borderRadius: '3pt', padding: '1pt 5pt' }}>
+                {tag.text}
+              </span>
+            ))}
+          </div>
+        );
+      })()}
 
       {ss.text && (
         <p style={{ margin: '3pt 0 4pt 0', fontSize: '9.5pt', color: '#2d2d44', lineHeight: 1.45, textAlign: 'justify' }}>
@@ -81,56 +77,33 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
         </p>
       )}
 
-      {ss.bullets.length > 0 && (
+      {ss.bullets.filter(b => b.text).length > 0 && (
         <ul style={{ margin: '4pt 0 0 0', paddingLeft: '14pt', listStyleType: 'none' }}>
-          {ss.bullets.map(b => b.text && (
-            <li
-              key={b.id}
-              style={{
-                fontSize: '9.5pt',
-                color: '#2d2d44',
-                marginBottom: '2pt',
-                lineHeight: 1.45,
-                position: 'relative',
-                paddingLeft: '10pt',
-              }}
-            >
-              <span
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: '5pt',
-                  width: '4pt',
-                  height: '4pt',
-                  borderRadius: '50%',
-                  background: '#0f3460',
-                }}
-              />
+          {ss.bullets.filter(b => b.text).map(b => (
+            <li key={b.id} style={{ fontSize: '9.5pt', color: '#2d2d44', marginBottom: '2pt', lineHeight: 1.45, position: 'relative', paddingLeft: '10pt' }}>
+              <span style={{ position: 'absolute', left: 0, top: '5pt', width: '4pt', height: '4pt', borderRadius: '50%', background: '#0f3460' }} />
               <LinkedText text={b.text} link={b.link} />
             </li>
           ))}
         </ul>
       )}
 
-      {ss.type !== 3 && ss.tags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3pt', marginTop: '5pt' }}>
-          {ss.tags.map(tag => (
-            <span
-              key={tag.id}
-              style={{
-                fontSize: '8pt',
-                background: '#e8f0fe',
-                color: '#0f3460',
-                borderRadius: '3pt',
-                padding: '1.5pt 6pt',
-                border: '0.5pt solid #c5d8f7',
-              }}
-            >
-              {tag.text}
-            </span>
-          ))}
-        </div>
-      )}
+      {(() => {
+        const ft = ss.tags.filter(t => t.text);
+        if (!ft.length) return null;
+        if (ss.tagsPosition === 'top' || ss.type === 3) return null;
+        return (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3pt', marginTop: '5pt' }}>
+            {ft.map(tag => (
+              <span key={tag.id} style={{ fontSize: '8pt', background: '#e8f0fe', color: '#0f3460', borderRadius: '3pt', padding: '1.5pt 6pt', border: '0.5pt solid #c5d8f7' }}>
+                {tag.text}
+              </span>
+            ))}
+          </div>
+        );
+      })()}
+
+      <ImagesBlock ss={ss} accentColor="#0f3460" />
     </div>
   );
 }

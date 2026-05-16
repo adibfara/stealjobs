@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LinkedText } from './shared';
+import { LinkedText, ImagesBlock } from './shared';
 import type { ResumeData, SubSection } from './shared';
 
 const SERIF = "'Lora', Georgia, serif";
@@ -44,28 +44,35 @@ function T1({ ss }: { ss: SubSection }) {
           {ss.text}
         </p>
       )}
-      {/* Bullets */}
-      {ss.bullets.filter(b => b.text).length > 0 && (
-        <ul style={{ margin: '6px 0 0 0', paddingLeft: '18px', listStyleType: 'disc' }}>
-          {ss.bullets.map(b => b.text && (
-            <li
-              key={b.id}
-              style={{ fontFamily: SANS, fontSize: '12px', color: '#1a1a1a', lineHeight: 1.55, marginBottom: '7px' }}
-            >
-              <LinkedText text={b.text} link={b.link} />
-            </li>
-          ))}
-        </ul>
-      )}
-      {ss.tags.filter(t => t.text).length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-          {ss.tags.map(t => t.text && (
+      {ss.tagsPosition === 'top' && ss.tags.filter(t => t.text).length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+          {ss.tags.filter(t => t.text).map(t => (
             <span key={t.id} style={{ fontFamily: SANS, fontSize: '11px', color: '#444', background: '#f0f0f0', border: '0.5px solid #d0d0d0', borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
               {t.text}
             </span>
           ))}
         </div>
       )}
+      {/* Bullets */}
+      {ss.bullets.filter(b => b.text).length > 0 && (
+        <ul style={{ margin: '6px 0 0 0', paddingLeft: '18px', listStyleType: 'disc' }}>
+          {ss.bullets.map(b => b.text && (
+            <li key={b.id} style={{ fontFamily: SANS, fontSize: '12px', color: '#1a1a1a', lineHeight: 1.55, marginBottom: '7px' }}>
+              <LinkedText text={b.text} link={b.link} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {(ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(t => t.text).length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+          {ss.tags.filter(t => t.text).map(t => (
+            <span key={t.id} style={{ fontFamily: SANS, fontSize: '11px', color: '#444', background: '#f0f0f0', border: '0.5px solid #d0d0d0', borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
+              {t.text}
+            </span>
+          ))}
+        </div>
+      )}
+      <ImagesBlock ss={ss} accentColor="#1a1a1a" />
     </div>
   );
 }
@@ -99,6 +106,15 @@ function T2({ ss }: { ss: SubSection }) {
           {ss.text}
         </p>
       )}
+      {ss.tagsPosition === 'top' && ss.tags.filter(t => t.text).length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+          {ss.tags.filter(t => t.text).map(t => (
+            <span key={t.id} style={{ fontFamily: SANS, fontSize: '11px', color: '#444', background: '#f0f0f0', border: '0.5px solid #d0d0d0', borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
+              {t.text}
+            </span>
+          ))}
+        </div>
+      )}
       {ss.bullets.filter(b => b.text).length > 0 && (
         <ul style={{ margin: '5px 0 0 0', paddingLeft: '18px', listStyleType: 'disc' }}>
           {ss.bullets.map(b => b.text && (
@@ -108,15 +124,16 @@ function T2({ ss }: { ss: SubSection }) {
           ))}
         </ul>
       )}
-      {ss.tags.filter(t => t.text).length > 0 && (
+      {(ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(t => t.text).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '5px' }}>
-          {ss.tags.map(t => t.text && (
+          {ss.tags.filter(t => t.text).map(t => (
             <span key={t.id} style={{ fontFamily: SANS, fontSize: '11px', color: '#444', background: '#f0f0f0', border: '0.5px solid #d0d0d0', borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
               {t.text}
             </span>
           ))}
         </div>
       )}
+      <ImagesBlock ss={ss} accentColor="#1a1a1a" />
     </div>
   );
 }
@@ -124,7 +141,7 @@ function T2({ ss }: { ss: SubSection }) {
 function T3({ ss }: { ss: SubSection }) {
   const items = [
     ...ss.bullets.filter(b => b.text).map(b => ({ text: b.text, link: b.link })),
-    ...ss.tags.map(t => ({ text: t.text, link: undefined })),
+    ...ss.tags.filter(t => t.text).map(t => ({ text: t.text, link: undefined })),
   ];
   if (items.length === 0) return null;
 
@@ -157,6 +174,7 @@ function T3({ ss }: { ss: SubSection }) {
           </ul>
         ))}
       </div>
+      <ImagesBlock ss={ss} accentColor="#1a1a1a" />
     </div>
   );
 }

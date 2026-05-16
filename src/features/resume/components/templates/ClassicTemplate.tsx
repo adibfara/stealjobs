@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LinkedText, TemplateIcon } from './shared';
+import { LinkedText, TemplateIcon, ImagesBlock } from './shared';
 import type { ResumeData, SubSection } from './shared';
 
 interface Props {
@@ -43,26 +43,24 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
         </div>
       )}
 
-      {/* Type 3: show tags prominently after title */}
-      {ss.type === 3 && ss.tags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4pt', marginBottom: '4pt' }}>
-          {ss.tags.map(tag => (
-            <span
-              key={tag.id}
-              style={{
-                fontSize: '8.5pt',
-                background: '#f0f0f0',
-                border: '0.5pt solid #ddd',
-                borderRadius: '3pt',
-                padding: '1pt 5pt',
-                color: '#333',
-              }}
-            >
-              {tag.text}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* Tags — rendered top or bottom based on tagsPosition */}
+      {(() => {
+        const filteredTags = ss.tags.filter(t => t.text);
+        if (filteredTags.length === 0) return null;
+        const isTop = ss.tagsPosition === 'top';
+        const isType3 = ss.type === 3;
+        const showHere = isTop || isType3;
+        if (!showHere) return null;
+        return (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4pt', marginBottom: '4pt' }}>
+            {filteredTags.map(tag => (
+              <span key={tag.id} style={{ fontSize: '8.5pt', background: '#f0f0f0', border: '0.5pt solid #ddd', borderRadius: '3pt', padding: '1pt 5pt', color: '#333' }}>
+                {tag.text}
+              </span>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Text */}
       {ss.text && (
@@ -72,9 +70,9 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
       )}
 
       {/* Bullets */}
-      {ss.bullets.length > 0 && (
+      {ss.bullets.filter(b => b.text).length > 0 && (
         <ul style={{ margin: '3pt 0 0 0', paddingLeft: '14pt', listStyleType: 'disc' }}>
-          {ss.bullets.map(b => b.text && (
+          {ss.bullets.filter(b => b.text).map(b => (
             <li key={b.id} style={{ fontSize: '10pt', color: '#222', marginBottom: '2pt', lineHeight: 1.4 }}>
               <LinkedText text={b.text} link={b.link} />
             </li>
@@ -82,26 +80,23 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
         </ul>
       )}
 
-      {/* Type 1 & 2: tags at bottom */}
-      {ss.type !== 3 && ss.tags.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4pt', marginTop: '4pt' }}>
-          {ss.tags.map(tag => (
-            <span
-              key={tag.id}
-              style={{
-                fontSize: '8.5pt',
-                background: '#f5f5f5',
-                border: '0.5pt solid #e0e0e0',
-                borderRadius: '3pt',
-                padding: '1pt 5pt',
-                color: '#444',
-              }}
-            >
-              {tag.text}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* Tags at bottom (default, type 1 & 2, not overridden to top) */}
+      {(() => {
+        const filteredTags = ss.tags.filter(t => t.text);
+        if (filteredTags.length === 0) return null;
+        if (ss.tagsPosition === 'top' || ss.type === 3) return null;
+        return (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4pt', marginTop: '4pt' }}>
+            {filteredTags.map(tag => (
+              <span key={tag.id} style={{ fontSize: '8.5pt', background: '#f5f5f5', border: '0.5pt solid #e0e0e0', borderRadius: '3pt', padding: '1pt 5pt', color: '#444' }}>
+                {tag.text}
+              </span>
+            ))}
+          </div>
+        );
+      })()}
+
+      <ImagesBlock ss={ss} accentColor="#111" />
     </div>
   );
 }

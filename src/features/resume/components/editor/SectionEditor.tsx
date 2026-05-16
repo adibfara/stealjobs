@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { LinkedInput } from './LinkedInput';
 import { SubSectionEditor } from './SubSectionEditor';
@@ -12,8 +14,8 @@ function createSubSection(): SubSection {
     title: '',
     subtitle: '',
     date: '',
-    bullets: [],
-    tags: [],
+    bullets: [{ id: genId(), text: '' }],
+    tags: [{ id: genId(), text: '' }],
     type: 1,
   };
 }
@@ -27,6 +29,8 @@ interface SectionEditorProps {
 
 export function SectionEditor({ section, onChange, onDelete, index }: SectionEditorProps) {
   const [collapsed, setCollapsed] = React.useState(false);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: section.id });
 
   function update(patch: Partial<Section>) {
     onChange({ ...section, ...patch });
@@ -45,9 +49,22 @@ export function SectionEditor({ section, onChange, onDelete, index }: SectionEdi
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm">
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`rounded-xl border border-border bg-card shadow-sm${isDragging ? ' opacity-50' : ''}`}
+    >
       {/* Section header */}
       <div className="flex items-center gap-2 px-4 py-3">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="flex h-6 w-6 shrink-0 cursor-grab items-center justify-center rounded text-muted-foreground/40 hover:text-muted-foreground active:cursor-grabbing"
+          tabIndex={-1}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
           {index + 1}
         </span>

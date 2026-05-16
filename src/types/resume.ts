@@ -25,7 +25,16 @@ export interface Tag {
   text: string;
 }
 
+export interface ImageItem {
+  id: string;
+  title: string;
+  subtitle?: string;
+  imageLink: string;
+  link?: string;
+}
+
 export type SubSectionType = 1 | 2 | 3;
+export type TagsPosition = 'top' | 'bottom';
 
 export interface SubSection {
   id: string;
@@ -38,7 +47,10 @@ export interface SubSection {
   text?: string;
   bullets: Bullet[];
   tags: Tag[];
+  images?: ImageItem[];
+  imagesCardView?: boolean;
   type: SubSectionType;
+  tagsPosition?: TagsPosition;
 }
 
 export interface Section {

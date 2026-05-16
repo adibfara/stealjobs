@@ -3,6 +3,12 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   ArrowLeft, Eye, Download, Plus, Save, Pencil, Check, X,
 } from 'lucide-react';
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, verticalListSortingStrategy, arrayMove,
+} from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
 import { ContactEditor } from './editor/ContactEditor';
 import { SectionEditor } from './editor/SectionEditor';
@@ -70,6 +76,15 @@ export function ResumeEditorPage() {
   function removeSection(id: string) {
     if (!resume) return;
     update({ sections: resume.sections.filter(sec => sec.id !== id) });
+  }
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  function onSectionDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!resume || !over || active.id === over.id) return;
+    const ids = resume.sections.map(s => s.id);
+    update({ sections: arrayMove(resume.sections, ids.indexOf(active.id as string), ids.indexOf(over.id as string)) });
   }
 
   function commitName() {
@@ -189,15 +204,21 @@ export function ResumeEditorPage() {
           </section>
 
           {/* Sections */}
-          {resume.sections.map((section, idx) => (
-            <SectionEditor
-              key={section.id}
-              section={section}
-              index={idx}
-              onChange={s => updateSection(section.id, s)}
-              onDelete={() => removeSection(section.id)}
-            />
-          ))}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onSectionDragEnd}>
+            <SortableContext items={resume.sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
+              <div className="flex flex-col gap-5">
+                {resume.sections.map((section, idx) => (
+                  <SectionEditor
+                    key={section.id}
+                    section={section}
+                    index={idx}
+                    onChange={s => updateSection(section.id, s)}
+                    onDelete={() => removeSection(section.id)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
 
           {/* Add section */}
           <button

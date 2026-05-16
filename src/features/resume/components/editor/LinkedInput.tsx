@@ -14,6 +14,7 @@ interface LinkedInputProps {
   multiline?: boolean;
   className?: string;
   rows?: number;
+  autoFocus?: boolean;
 }
 
 export function LinkedInput({
@@ -25,6 +26,7 @@ export function LinkedInput({
   multiline = false,
   className,
   rows = 3,
+  autoFocus = false,
 }: LinkedInputProps) {
   const [linkDraft, setLinkDraft] = React.useState(link ?? '');
   const [open, setOpen] = React.useState(false);
@@ -94,6 +96,7 @@ export function LinkedInput({
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
+          autoFocus={autoFocus}
           className="flex w-full resize-y rounded-md border border-input bg-background px-3 py-2 pr-8 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         />
         {linkBtn}
@@ -108,6 +111,7 @@ export function LinkedInput({
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
+        autoFocus={autoFocus}
         className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 pr-8 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       />
       {linkBtn}
