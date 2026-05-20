@@ -40,7 +40,7 @@ function T1({ ss }: { ss: SubSection }) {
           {ss.text}
         </p>
       )}
-      {ss.tagsPosition === 'top' && ss.tags.filter(tg => tg.text).length > 0 && (
+      {!ss.tagsHidden && ss.tagsPosition === 'top' && ss.tags.filter(tg => tg.text).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
           {ss.tags.filter(tg => tg.text).map(tg => (
             <span key={tg.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeTiny, color: t.tagSecondaryColor, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
@@ -58,7 +58,7 @@ function T1({ ss }: { ss: SubSection }) {
           ))}
         </ul>
       )}
-      {(ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(tg => tg.text).length > 0 && (
+      {!ss.tagsHidden && (ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(tg => tg.text).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
           {ss.tags.filter(tg => tg.text).map(tg => (
             <span key={tg.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeTiny, color: t.tagSecondaryColor, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
@@ -101,7 +101,7 @@ function T2({ ss }: { ss: SubSection }) {
           {ss.text}
         </p>
       )}
-      {ss.tagsPosition === 'top' && ss.tags.filter(tg => tg.text).length > 0 && (
+      {!ss.tagsHidden && ss.tagsPosition === 'top' && ss.tags.filter(tg => tg.text).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
           {ss.tags.filter(tg => tg.text).map(tg => (
             <span key={tg.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeTiny, color: t.tagSecondaryColor, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
@@ -119,7 +119,7 @@ function T2({ ss }: { ss: SubSection }) {
           ))}
         </ul>
       )}
-      {(ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(tg => tg.text).length > 0 && (
+      {!ss.tagsHidden && (ss.tagsPosition ?? 'bottom') === 'bottom' && ss.tags.filter(tg => tg.text).length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '5px' }}>
           {ss.tags.filter(tg => tg.text).map(tg => (
             <span key={tg.id} style={{ fontFamily: t.fontBody, fontSize: t.sizeTiny, color: t.tagSecondaryColor, background: t.tagSecondaryBg, border: t.tagSecondaryBorder, borderRadius: '3px', padding: '1px 7px', lineHeight: 1.6 }}>
@@ -136,7 +136,7 @@ function T2({ ss }: { ss: SubSection }) {
 function T3({ ss }: { ss: SubSection }) {
   const items = [
     ...ss.bullets.filter(b => b.text).map(b => ({ text: b.text, link: b.link })),
-    ...ss.tags.filter(tg => tg.text).map(tg => ({ text: tg.text, link: undefined })),
+    ...(ss.tagsHidden ? [] : ss.tags.filter(tg => tg.text).map(tg => ({ text: tg.text, link: undefined }))),
   ];
   if (items.length === 0) return null;
 

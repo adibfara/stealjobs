@@ -64,7 +64,7 @@ function SubSectionRender({ss}: { ss: SubSection }) {
 
             {(() => {
                 const ft = ss.tags.filter(tg => tg.text);
-                if (!ft.length) return null;
+                if (!ft.length || ss.tagsHidden) return null;
                 if (ss.tagsPosition !== 'top' && ss.type !== 3) return null;
                 return (
                     <div style={{display: 'flex', flexWrap: 'wrap', gap: '3pt', marginBottom: '4pt', marginTop: '3pt'}}>
@@ -124,7 +124,7 @@ function SubSectionRender({ss}: { ss: SubSection }) {
 
             {(() => {
                 const ft = ss.tags.filter(tg => tg.text);
-                if (!ft.length) return null;
+                if (!ft.length || ss.tagsHidden) return null;
                 if (ss.tagsPosition === 'top' || ss.type === 3) return null;
                 return (
                     <div style={{display: 'flex', flexWrap: 'wrap', gap: '3pt', marginTop: '5pt'}}>

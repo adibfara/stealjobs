@@ -73,18 +73,18 @@ export const modernTheme: TemplateTheme = {
   fontBody: "'Instrument Sans', 'Geist Variable', sans-serif",
 
   colorBg: '#fff',
-  colorText: '#1a1a2e',
+  colorText: '#2050bf',
   colorMuted: '#16213e',
   colorFaint: '#2d2d44',
-  colorAccent: '#000000',
+  colorAccent: '#1f44a3',
   colorAccentLight: '#fff',
 
   tagSecondaryBg: 'rgba(244,244,244,0)',
   tagSecondaryColor: '#1e1e1e',
   tagSecondaryBorder: '0.5pt solid #bdbdbd',
 
-  sizeTitle: '18pt',
-  sizeSubtitle: '9pt',
+  sizeTitle: '32pt',
+  sizeSubtitle: '14pt',
   sizeSectionHeading: '9pt',
   sizeSubsectionTitle: '10.5pt',
   sizeBody: '9.5pt',

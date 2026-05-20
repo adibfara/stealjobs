@@ -482,7 +482,18 @@ export function SubSectionEditor({ subsection, onChange, onDelete, id }: SubSect
 
           {/* Tags */}
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Tags</label>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="text-xs font-medium text-muted-foreground">Tags</label>
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={!(subsection.tagsHidden ?? false)}
+                  onChange={e => update({ tagsHidden: !e.target.checked })}
+                  className="h-3 w-3 rounded"
+                />
+                Show
+              </label>
+            </div>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onTagDragEnd}>
               <SortableContext items={subsection.tags.map(t => t.id)} strategy={verticalListSortingStrategy}>
                 <div className="flex flex-wrap gap-1.5">

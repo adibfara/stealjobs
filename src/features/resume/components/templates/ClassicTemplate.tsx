@@ -46,7 +46,7 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
 
       {(() => {
         const filteredTags = ss.tags.filter(t => t.text);
-        if (filteredTags.length === 0) return null;
+        if (filteredTags.length === 0 || ss.tagsHidden) return null;
         const isTop = ss.tagsPosition === 'top';
         const isType3 = ss.type === 3;
         if (!isTop && !isType3) return null;
@@ -79,7 +79,7 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
 
       {(() => {
         const filteredTags = ss.tags.filter(tg => tg.text);
-        if (filteredTags.length === 0) return null;
+        if (filteredTags.length === 0 || ss.tagsHidden) return null;
         if (ss.tagsPosition === 'top' || ss.type === 3) return null;
         return (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4pt', marginTop: '4pt' }}>

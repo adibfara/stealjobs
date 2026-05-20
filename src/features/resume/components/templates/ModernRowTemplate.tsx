@@ -23,7 +23,7 @@ function SubSectionRender({ss}: { ss: SubSection }) {
                             link={ss.titleLink}
                             style={{
                                 display: 'block',
-                                fontWeight: 600,
+                                fontWeight: 'bold',
                                 fontSize: t.sizeSubsectionTitle,
                                 color: t.colorText,
                                 fontFamily: t.fontBody,
@@ -38,8 +38,7 @@ function SubSectionRender({ss}: { ss: SubSection }) {
                                 display: 'block',
                                 fontSize: t.sizeBody,
                                 color: t.colorMuted,
-                                fontStyle: 'italic',
-                                opacity: 0.75,
+                                opacity: 0.95,
                             }}
                         />
                     )}
@@ -64,7 +63,7 @@ function SubSectionRender({ss}: { ss: SubSection }) {
 
             {(() => {
                 const ft = ss.tags.filter(tg => tg.text);
-                if (!ft.length) return null;
+                if (!ft.length || ss.tagsHidden) return null;
                 if (ss.tagsPosition !== 'top' && ss.type !== 3) return null;
                 return (
                     <div style={{display: 'flex', flexWrap: 'wrap', gap: '3pt', marginBottom: '4pt', marginTop: '3pt'}}>
@@ -90,7 +89,8 @@ function SubSectionRender({ss}: { ss: SubSection }) {
                     fontSize: t.sizeBody,
                     color: t.colorFaint,
                     lineHeight: 1.45,
-                    textAlign: 'justify'
+                    textAlign: 'justify',
+                    fontWeight: 600
                 }}>
                     {ss.text}
                 </p>
@@ -124,7 +124,7 @@ function SubSectionRender({ss}: { ss: SubSection }) {
 
             {(() => {
                 const ft = ss.tags.filter(tg => tg.text);
-                if (!ft.length) return null;
+                if (!ft.length || ss.tagsHidden) return null;
                 if (ss.tagsPosition === 'top' || ss.type === 3) return null;
                 return (
                     <div style={{display: 'flex', flexWrap: 'wrap', gap: '3pt', marginTop: '5pt'}}>
@@ -159,14 +159,15 @@ export function ModernRowTemplate({resume}: Props) {
                 backgroundColor: t.colorBg,
                 display: 'flex',
                 minHeight: '100%',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                marginTop: "12px"
             }}
         >
             {/* Top header bar */}
             <div
                 style={{
                     background: t.colorBg,
-                    color: t.colorText,
+                    color: t.colorMuted,
                     padding: `${t.pagePaddingV} ${t.pagePaddingH}`,
                     display: 'flex',
                     flexDirection: 'row',
@@ -201,7 +202,7 @@ export function ModernRowTemplate({resume}: Props) {
                                     fontFamily: t.fontDisplay,
                                     fontSize: t.sizeTitle,
                                     fontWeight: 400,
-                                    color: t.colorText,
+                                    color: t.colorMuted,
                                     lineHeight: 1.15,
                                     marginBottom: '5pt',
                                 }}
@@ -267,7 +268,7 @@ export function ModernRowTemplate({resume}: Props) {
                                         fontWeight: 700,
                                         letterSpacing: '1.5pt',
                                         textTransform: 'uppercase',
-                                        color: t.colorAccent,
+                                        color: t.colorMuted,
                                     }}
                                 />
                                 <div style={{flex: 1, height: t.dividerWidth, background: t.dividerColor}}/>

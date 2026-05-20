@@ -51,6 +51,7 @@ export interface SubSection {
   imagesCardView?: boolean;
   type: SubSectionType;
   tagsPosition?: TagsPosition;
+  tagsHidden?: boolean;
 }
 
 export interface Section {
