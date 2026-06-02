@@ -496,7 +496,7 @@ export function SubSectionEditor({ subsection, onChange, onDelete, id }: SubSect
             </div>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onTagDragEnd}>
               <SortableContext items={subsection.tags.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-col gap-1.5">
                   {subsection.tags.map(tag => (
                     <SortableTag
                       key={tag.id}

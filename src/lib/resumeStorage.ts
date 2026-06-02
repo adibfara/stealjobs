@@ -71,8 +71,6 @@ export function importResumeFromFile(file: File): Promise<ResumeData> {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target?.result as string) as ResumeData;
-        data.id = genId();
-        data.lastModified = Date.now();
         resolve(data);
       } catch {
         reject(new Error('Invalid resume file'));

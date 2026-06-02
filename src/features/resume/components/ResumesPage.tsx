@@ -1,7 +1,15 @@
 import * as React from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Plus, FileText, Download, Upload, Trash2, Clock, ChevronRight } from 'lucide-react';
+import { Plus, FileText, Download, Upload, Trash2, Clock, ChevronRight, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   getResumes,
   createResume,
@@ -9,6 +17,7 @@ import {
   deleteResume,
   exportResumeAsJson,
   importResumeFromFile,
+  genId,
 } from '@/lib/resumeStorage';
 import type { ResumeData } from '@/types/resume';
 
@@ -28,6 +37,10 @@ export function ResumesPage() {
   const [creating, setCreating] = React.useState(false);
   const [newName, setNewName] = React.useState('');
   const importRef = React.useRef<HTMLInputElement>(null);
+  const [conflictResume, setConflictResume] = React.useState<ResumeData | null>(null);
+  const [conflictNewName, setConflictNewName] = React.useState('');
+  const [duplicateSource, setDuplicateSource] = React.useState<ResumeData | null>(null);
+  const [duplicateName, setDuplicateName] = React.useState('');
 
   React.useEffect(() => {
     setResumes(getResumes().sort((a, b) => b.lastModified - a.lastModified));
@@ -56,12 +69,48 @@ export function ResumesPage() {
     if (!file) return;
     try {
       const r = await importResumeFromFile(file);
-      saveResume(r);
-      refresh();
+      const exists = getResumes().some(existing => existing.id === r.id);
+      if (exists) {
+        setConflictResume(r);
+        setConflictNewName(r.name);
+      } else {
+        r.lastModified = Date.now();
+        saveResume(r);
+        refresh();
+      }
     } catch {
       alert('Failed to import resume. Make sure it is a valid .resume.json file.');
     }
     e.target.value = '';
+  }
+
+  function handleConflictOverwrite() {
+    if (!conflictResume) return;
+    saveResume({ ...conflictResume, lastModified: Date.now() });
+    setConflictResume(null);
+    refresh();
+  }
+
+  function handleDuplicate(r: ResumeData, e: React.MouseEvent) {
+    e.stopPropagation();
+    setDuplicateSource(r);
+    setDuplicateName(`${r.name} (copy)`);
+  }
+
+  function handleDuplicateConfirm() {
+    if (!duplicateSource) return;
+    const now = Date.now();
+    saveResume({ ...duplicateSource, id: genId(), name: duplicateName.trim() || `${duplicateSource.name} (copy)`, lastModified: now, createdAt: now });
+    setDuplicateSource(null);
+    refresh();
+  }
+
+  function handleConflictCreateNew() {
+    if (!conflictResume) return;
+    const now = Date.now();
+    saveResume({ ...conflictResume, id: genId(), name: conflictNewName.trim() || conflictResume.name, lastModified: now, createdAt: now });
+    setConflictResume(null);
+    refresh();
   }
 
   return (
@@ -157,6 +206,14 @@ export function ResumesPage() {
                     </button>
                     <button
                       type="button"
+                      onClick={e => handleDuplicate(r, e)}
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      title="Duplicate resume"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
                       onClick={e => handleDelete(r.id, e)}
                       className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                       title="Delete resume"
@@ -183,6 +240,60 @@ export function ResumesPage() {
           </div>
         )}
       </main>
+
+      <Dialog open={!!duplicateSource} onOpenChange={open => { if (!open) setDuplicateSource(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Duplicate resume</DialogTitle>
+            <DialogDescription>
+              Choose a name for the duplicate.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <input
+              autoFocus
+              type="text"
+              value={duplicateName}
+              onChange={e => setDuplicateName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleDuplicateConfirm(); if (e.key === 'Escape') setDuplicateSource(null); }}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDuplicateSource(null)}>Cancel</Button>
+            <Button onClick={handleDuplicateConfirm}>Duplicate</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!conflictResume} onOpenChange={open => { if (!open) setConflictResume(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resume already exists</DialogTitle>
+            <DialogDescription>
+              A resume with this ID is already saved. Overwrite it or save as a new copy.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <p className="mb-1.5 text-sm font-medium">Name for new copy</p>
+            <input
+              type="text"
+              value={conflictNewName}
+              onChange={e => setConflictNewName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleConflictCreateNew(); }}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={handleConflictOverwrite}>
+              Overwrite existing
+            </Button>
+            <Button onClick={handleConflictCreateNew}>
+              Save as new copy
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
