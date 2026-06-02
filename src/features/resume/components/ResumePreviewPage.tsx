@@ -3,7 +3,7 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Printer, FileDown, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getResume, getResumes } from '@/lib/resumeStorage';
-import { TEMPLATES, getTemplate } from './templates';
+import { TEMPLATES, COVER_LETTER_TEMPLATES, getTemplate, getCoverLetterTemplate } from './templates';
 import type { ResumeData } from '@/types/resume';
 
 function printResume(resume: ResumeData) {
@@ -38,7 +38,9 @@ export function ResumePreviewPage() {
     return () => clearInterval(interval);
   }, [resumeId]);
 
-  const template = getTemplate(templateId);
+  const isCoverLetter = resume?.type === 'coverletter';
+  const availableTemplates = isCoverLetter ? COVER_LETTER_TEMPLATES : TEMPLATES;
+  const template = isCoverLetter ? getCoverLetterTemplate(templateId) : getTemplate(templateId);
   const TemplateComponent = template.component;
 
   if (!resume) return null;
@@ -70,7 +72,7 @@ export function ResumePreviewPage() {
                 onClick={() => setShowTemplateMenu(false)}
               />
               <div className="absolute right-0 top-full z-20 mt-1 w-40 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
-                {TEMPLATES.map(t => (
+                {availableTemplates.map(t => (
                   <button
                     key={t.id}
                     type="button"

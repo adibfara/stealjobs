@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Plus, FileText, Download, Upload, Trash2, Clock, ChevronRight, Copy } from 'lucide-react';
+import { Plus, FileText, Download, Upload, Trash2, Clock, ChevronRight, Copy, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +13,7 @@ import {
 import {
   getResumes,
   createResume,
+  createCoverLetter,
   saveResume,
   deleteResume,
   exportResumeAsJson,
@@ -20,6 +21,154 @@ import {
   genId,
 } from '@/lib/resumeStorage';
 import type { ResumeData } from '@/types/resume';
+
+interface DocCardProps {
+  r: ResumeData;
+  onNavigate: (id: string) => void;
+  onDelete: (id: string, e: React.MouseEvent) => void;
+  onDuplicate: (r: ResumeData, e: React.MouseEvent) => void;
+  onExport: (r: ResumeData) => void;
+  icon: 'resume' | 'coverletter';
+}
+
+function DocCard({ r, onNavigate, onDelete, onDuplicate, onExport, icon }: DocCardProps) {
+  return (
+    <div
+      onClick={() => onNavigate(r.id)}
+      className="group relative cursor-pointer rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
+    >
+      <div className="mb-3 flex items-start justify-between">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+          {icon === 'coverletter'
+            ? <Mail className="h-5 w-5 text-muted-foreground" />
+            : <FileText className="h-5 w-5 text-muted-foreground" />}
+        </div>
+        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); onExport(r); }}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            title="Export as JSON"
+          >
+            <Download className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={e => onDuplicate(r, e)}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            title="Duplicate"
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={e => onDelete(r.id, e)}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            title="Delete"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+      <h3 className="font-semibold leading-tight truncate">{r.name}</h3>
+      {r.title && <p className="mt-0.5 text-sm text-muted-foreground truncate">{r.title}</p>}
+      <div className="mt-3 flex items-center justify-between">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          {formatDate(r.lastModified)}
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+      </div>
+    </div>
+  );
+}
+
+interface ResumeSectionProps {
+  items: ResumeData[];
+  title: string;
+  emptyLabel: string;
+  emptyDesc: string;
+  onCreateClick: () => void;
+  onNavigate: (id: string) => void;
+  onDelete: (id: string, e: React.MouseEvent) => void;
+  onDuplicate: (r: ResumeData, e: React.MouseEvent) => void;
+  onExport: (r: ResumeData) => void;
+  icon: 'resume' | 'coverletter';
+  creating: boolean;
+}
+
+function ResumeSection({ items, title, emptyLabel, emptyDesc, onCreateClick, onNavigate, onDelete, onDuplicate, onExport, icon, creating }: ResumeSectionProps) {
+  if (items.length === 0 && creating) return null;
+  return (
+    <div className="mb-10">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-base font-semibold">{title}</h2>
+      </div>
+      {items.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+            <FileText className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <h3 className="text-base font-semibold">{emptyLabel}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{emptyDesc}</p>
+          <Button className="mt-5" size="sm" onClick={onCreateClick}>
+            <Plus className="mr-1.5 h-4 w-4" /> Create
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map(r => (
+            <DocCard key={r.id} r={r} onNavigate={onNavigate} onDelete={onDelete} onDuplicate={onDuplicate} onExport={onExport} icon={icon} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface CoverLetterSectionProps {
+  items: ResumeData[];
+  onCreateClick: () => void;
+  onNavigate: (id: string) => void;
+  onDelete: (id: string, e: React.MouseEvent) => void;
+  onDuplicate: (r: ResumeData, e: React.MouseEvent) => void;
+  onExport: (r: ResumeData) => void;
+  creating: boolean;
+}
+
+function CoverLetterSection({ items, onCreateClick, onNavigate, onDelete, onDuplicate, onExport, creating }: CoverLetterSectionProps) {
+  if (items.length === 0 && creating) return null;
+  return (
+    <div className="mb-10">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-base font-semibold">Cover Letters</h2>
+        {items.length > 0 && (
+          <Button variant="outline" size="sm" onClick={onCreateClick}>
+            <Plus className="mr-1.5 h-4 w-4" /> New
+          </Button>
+        )}
+      </div>
+      {items.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+            <Mail className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <h3 className="text-base font-semibold">No cover letters yet</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Create a cover letter to pair with your resume.</p>
+          <Button className="mt-5" size="sm" onClick={onCreateClick}>
+            <Plus className="mr-1.5 h-4 w-4" /> Create
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map(r => (
+            <DocCard key={r.id} r={r} onNavigate={onNavigate} onDelete={onDelete} onDuplicate={onDuplicate} onExport={onExport} icon="coverletter" />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function formatDate(ts: number) {
   const d = new Date(ts);
@@ -34,7 +183,7 @@ function formatDate(ts: number) {
 export function ResumesPage() {
   const navigate = useNavigate();
   const [resumes, setResumes] = React.useState<ResumeData[]>([]);
-  const [creating, setCreating] = React.useState(false);
+  const [creating, setCreating] = React.useState<'resume' | 'coverletter' | null>(null);
   const [newName, setNewName] = React.useState('');
   const importRef = React.useRef<HTMLInputElement>(null);
   const [conflictResume, setConflictResume] = React.useState<ResumeData | null>(null);
@@ -51,15 +200,17 @@ export function ResumesPage() {
   }
 
   function handleCreate() {
-    const name = newName.trim() || 'Untitled Resume';
-    const r = createResume(name);
+    if (!creating) return;
+    const isCover = creating === 'coverletter';
+    const name = newName.trim() || (isCover ? 'Untitled Cover Letter' : 'Untitled Resume');
+    const r = isCover ? createCoverLetter(name) : createResume(name);
     saveResume(r);
     navigate({ to: '/resume/$resumeId', params: { resumeId: r.id } });
   }
 
-  function handleDelete(id: string, e: React.MouseEvent) {
+  function handleDelete(id: string, e: React.MouseEvent, label = 'resume') {
     e.stopPropagation();
-    if (!confirm('Delete this resume?')) return;
+    if (!confirm(`Delete this ${label}?`)) return;
     deleteResume(id);
     refresh();
   }
@@ -121,7 +272,7 @@ export function ResumesPage() {
           <div>
             <h1 className="text-xl font-bold tracking-tight">Resume Builder</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {resumes.length} resume{resumes.length !== 1 ? 's' : ''} saved locally
+              {resumes.length} document{resumes.length !== 1 ? 's' : ''} saved locally
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -135,7 +286,10 @@ export function ResumesPage() {
             <Button variant="outline" size="sm" onClick={() => importRef.current?.click()}>
               <Upload className="mr-1.5 h-4 w-4" /> Import
             </Button>
-            <Button size="sm" onClick={() => setCreating(true)}>
+            <Button variant="outline" size="sm" onClick={() => { setCreating('coverletter'); setNewName(''); }}>
+              <Plus className="mr-1.5 h-4 w-4" /> New Cover Letter
+            </Button>
+            <Button size="sm" onClick={() => { setCreating('resume'); setNewName(''); }}>
               <Plus className="mr-1.5 h-4 w-4" /> New Resume
             </Button>
           </div>
@@ -143,10 +297,12 @@ export function ResumesPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-8">
-        {/* New resume form */}
+        {/* New document form */}
         {creating && (
           <div className="mb-6 rounded-xl border border-primary/30 bg-card p-4 shadow-sm">
-            <p className="mb-2 text-sm font-medium">Name your resume</p>
+            <p className="mb-2 text-sm font-medium">
+              {creating === 'coverletter' ? 'Name your cover letter' : 'Name your resume'}
+            </p>
             <div className="flex gap-2">
               <input
                 autoFocus
@@ -155,90 +311,42 @@ export function ResumesPage() {
                 onChange={e => setNewName(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') handleCreate();
-                  if (e.key === 'Escape') { setCreating(false); setNewName(''); }
+                  if (e.key === 'Escape') { setCreating(null); setNewName(''); }
                 }}
-                placeholder="e.g. Software Engineer 2025"
+                placeholder={creating === 'coverletter' ? 'e.g. Google Cover Letter' : 'e.g. Software Engineer 2025'}
                 className="flex h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
               <Button onClick={handleCreate}>Create</Button>
-              <Button variant="ghost" onClick={() => { setCreating(false); setNewName(''); }}>
+              <Button variant="ghost" onClick={() => { setCreating(null); setNewName(''); }}>
                 Cancel
               </Button>
             </div>
           </div>
         )}
 
-        {/* Empty state */}
-        {resumes.length === 0 && !creating && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
-              <FileText className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h2 className="text-lg font-semibold">No resumes yet</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Create your first resume or import an existing one.</p>
-            <Button className="mt-6" onClick={() => setCreating(true)}>
-              <Plus className="mr-1.5 h-4 w-4" /> Create Resume
-            </Button>
-          </div>
-        )}
+        <ResumeSection
+          items={resumes.filter(r => !r.type || r.type === 'resume')}
+          title="Resumes"
+          emptyLabel="No resumes yet"
+          emptyDesc="Create your first resume or import an existing one."
+          onCreateClick={() => { setCreating('resume'); setNewName(''); }}
+          onNavigate={id => navigate({ to: '/resume/$resumeId', params: { resumeId: id } })}
+          onDelete={(id, e) => handleDelete(id, e, 'resume')}
+          onDuplicate={handleDuplicate}
+          onExport={r => exportResumeAsJson(r)}
+          icon="resume"
+          creating={!!creating}
+        />
 
-        {/* Resume grid */}
-        {resumes.length > 0 && (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {resumes.map(r => (
-              <div
-                key={r.id}
-                onClick={() => navigate({ to: '/resume/$resumeId', params: { resumeId: r.id } })}
-                className="group relative cursor-pointer rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
-              >
-                <div className="mb-3 flex items-start justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <button
-                      type="button"
-                      onClick={e => { e.stopPropagation(); exportResumeAsJson(r); }}
-                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                      title="Export as JSON"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={e => handleDuplicate(r, e)}
-                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                      title="Duplicate resume"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={e => handleDelete(r.id, e)}
-                      className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                      title="Delete resume"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                <h3 className="font-semibold leading-tight truncate">{r.name}</h3>
-                {r.title && (
-                  <p className="mt-0.5 text-sm text-muted-foreground truncate">{r.title}</p>
-                )}
-
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    {formatDate(r.lastModified)}
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <CoverLetterSection
+          items={resumes.filter(r => r.type === 'coverletter')}
+          onCreateClick={() => { setCreating('coverletter'); setNewName(''); }}
+          onNavigate={id => navigate({ to: '/resume/$resumeId', params: { resumeId: id } })}
+          onDelete={(id, e) => handleDelete(id, e, 'cover letter')}
+          onDuplicate={handleDuplicate}
+          onExport={r => exportResumeAsJson(r)}
+          creating={!!creating}
+        />
       </main>
 
       <Dialog open={!!duplicateSource} onOpenChange={open => { if (!open) setDuplicateSource(null); }}>

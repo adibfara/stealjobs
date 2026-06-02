@@ -151,7 +151,7 @@ export function ResumeEditorPage() {
             size="sm"
             onClick={() => {
               saveResume(resume);
-              navigate({ to: '/resume/$resumeId/preview', params: { resumeId: resume.id } });
+              window.open(`/resume/${resume.id}/preview`, '_blank');
             }}
           >
             <Eye className="mr-1.5 h-4 w-4" /> Preview

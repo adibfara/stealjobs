@@ -42,11 +42,28 @@ export function createResume(name: string): ResumeData {
   return {
     id: genId(),
     name,
+    type: 'resume',
     title: '',
     subtitle: '',
     contacts: [],
     sections: [],
     selectedTemplate: 'classic',
+    lastModified: now,
+    createdAt: now,
+  };
+}
+
+export function createCoverLetter(name: string): ResumeData {
+  const now = Date.now();
+  return {
+    id: genId(),
+    name,
+    type: 'coverletter',
+    title: '',
+    subtitle: '',
+    contacts: [],
+    sections: [],
+    selectedTemplate: 'coverletter-default',
     lastModified: now,
     createdAt: now,
   };

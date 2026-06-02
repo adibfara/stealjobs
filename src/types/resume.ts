@@ -61,9 +61,12 @@ export interface Section {
   subsections: SubSection[];
 }
 
+export type DocumentType = 'resume' | 'coverletter';
+
 export interface ResumeData {
   id: string;
   name: string;
+  type?: DocumentType;
   title?: string;
   titleLink?: string;
   subtitle?: string;

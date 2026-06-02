@@ -62,7 +62,7 @@ function SortableBullet({ bullet, onUpdate, onRemove }: SortableBulletProps) {
         onLinkChange={v => onUpdate({ link: v })}
         placeholder="Bullet point..."
         multiline
-        rows={2}
+        rows={8}
         className="flex-1"
       />
       <button
@@ -120,7 +120,7 @@ function SortableTag({ tag, onUpdate, onRemove }: SortableTagProps) {
       <button
         type="button"
         onClick={onRemove}
-        className="ml-0.5 text-xs text-muted-foreground/50 transition-colors hover:text-destructive"
+        className="flex-1 text-end text-xs text-muted-foreground/50 transition-colors hover:text-destructive text-end"
       >
         ×
       </button>
