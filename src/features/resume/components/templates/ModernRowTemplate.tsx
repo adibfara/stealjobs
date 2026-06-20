@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type {ResumeData, SubSection} from './shared';
-import {ImagesBlock, LinkedText, TemplateIcon} from './shared';
+import {ImagesBlock, LinkedText, TemplateIcon, BoldText} from './shared';
 import {modernTheme as t} from './templateThemes';
 
 interface Props {
@@ -90,9 +90,8 @@ function SubSectionRender({ss}: { ss: SubSection }) {
                     color: t.colorFaint,
                     lineHeight: 1.45,
                     textAlign: 'justify',
-                    fontWeight: 600
                 }}>
-                    {ss.text}
+                    <BoldText text={ss.text} />
                 </p>
             )}
 

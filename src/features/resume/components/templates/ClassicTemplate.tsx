@@ -1,5 +1,5 @@
 ﻿import * as React from 'react';
-import { LinkedText, TemplateIcon, ImagesBlock } from './shared';
+import { LinkedText, TemplateIcon, ImagesBlock, BoldText } from './shared';
 import type { ResumeData, SubSection } from './shared';
 import { classicTheme as t } from './templateThemes';
 
@@ -63,7 +63,7 @@ function SubSectionRender({ ss }: { ss: SubSection }) {
 
       {ss.text && (
         <p style={{ margin: '3pt 0 4pt 0', fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.4, textAlign: 'justify' }}>
-          {ss.text}
+          <BoldText text={ss.text} />
         </p>
       )}
 

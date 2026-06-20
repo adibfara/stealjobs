@@ -10,6 +10,30 @@ export function TemplateIcon({ name, size = 12, strokeWidth = 1.5 }: { name: str
   return <Icon size={size} strokeWidth={strokeWidth} />;
 }
 
+export function BoldText({ text }: { text: string }) {
+  return <>{renderBold(text)}</>;
+}
+
+function renderBold(text: string): React.ReactNode {
+  const parts = text.split(/\*([^*]+)\*/g);
+  const nodes = parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i} style={{ fontWeight: 700 }}>{part}</strong> : part
+  );
+  const result: React.ReactNode[] = [];
+  nodes.forEach((node, ni) => {
+    if (typeof node === 'string') {
+      const lines = node.split('\n');
+      lines.forEach((line, li) => {
+        if (li > 0) result.push(<br key={`br-${ni}-${li}`} />);
+        if (line) result.push(line);
+      });
+    } else {
+      result.push(node);
+    }
+  });
+  return result;
+}
+
 export function LinkedText({
   text,
   link,
@@ -22,14 +46,15 @@ export function LinkedText({
   className?: string;
 }) {
   if (!text) return null;
+  const content = renderBold(text);
   if (link) {
     return (
       <a href={link} target="_blank" rel="noopener noreferrer" style={style} className={className}>
-        {text}
+        {content}
       </a>
     );
   }
-  return <span style={style} className={className}>{text}</span>;
+  return <span style={style} className={className}>{content}</span>;
 }
 
 export function ImagesBlock({ ss, accentColor = '#333' }: { ss: SubSection; accentColor?: string }) {

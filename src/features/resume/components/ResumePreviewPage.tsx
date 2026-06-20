@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeft, Printer, FileDown, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Printer, FileDown, ChevronDown, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getResume, getResumes } from '@/lib/resumeStorage';
 import { TEMPLATES, COVER_LETTER_TEMPLATES, getTemplate, getCoverLetterTemplate } from './templates';
+import { exportToWord } from '@/lib/wordExport';
 import type { ResumeData } from '@/types/resume';
 
 function printResume(resume: ResumeData) {
@@ -18,7 +19,7 @@ export function ResumePreviewPage() {
   const { resumeId } = useParams({ from: '/resume/$resumeId/preview' });
   const navigate = useNavigate();
   const [resume, setResume] = React.useState<ResumeData | null>(null);
-  const [templateId, setTemplateId] = React.useState('classic');
+  const [templateId, setTemplateId] = React.useState('modern-row');
   const [showTemplateMenu, setShowTemplateMenu] = React.useState(false);
 
   // Load resume once
@@ -26,7 +27,7 @@ export function ResumePreviewPage() {
     const r = getResume(resumeId);
     if (!r) { navigate({ to: '/' }); return; }
     setResume(r);
-    setTemplateId(r.selectedTemplate ?? 'classic');
+    setTemplateId(r.selectedTemplate ?? 'modern-row');
   }, [resumeId]);
 
   // Auto-refresh every second
@@ -92,6 +93,9 @@ export function ResumePreviewPage() {
 
         <Button variant="outline" size="sm" onClick={() => printResume(resume)}>
           <Printer className="mr-1.5 h-4 w-4" /> Print
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => exportToWord(resume)}>
+          <FileText className="mr-1.5 h-4 w-4" /> Export Word
         </Button>
         <Button size="sm" onClick={() => printResume(resume)}>
           <FileDown className="mr-1.5 h-4 w-4" /> Download PDF

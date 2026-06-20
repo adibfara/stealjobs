@@ -1,5 +1,5 @@
 ﻿import * as React from 'react';
-import { LinkedText, ImagesBlock } from './shared';
+import { LinkedText, ImagesBlock, BoldText } from './shared';
 import type { ResumeData, SubSection } from './shared';
 import { professionalTheme as t } from './templateThemes';
 
@@ -37,7 +37,7 @@ function T1({ ss }: { ss: SubSection }) {
       )}
       {ss.text && (
         <p style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.55, margin: '5px 0 4px 0', textAlign: 'justify' }}>
-          {ss.text}
+          <BoldText text={ss.text} />
         </p>
       )}
       {!ss.tagsHidden && ss.tagsPosition === 'top' && ss.tags.filter(tg => tg.text).length > 0 && (
@@ -98,7 +98,7 @@ function T2({ ss }: { ss: SubSection }) {
       )}
       {ss.text && (
         <p style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.5, margin: '4px 0 3px 0', textAlign: 'justify' }}>
-          {ss.text}
+          <BoldText text={ss.text} />
         </p>
       )}
       {!ss.tagsHidden && ss.tagsPosition === 'top' && ss.tags.filter(tg => tg.text).length > 0 && (
@@ -155,7 +155,7 @@ function T3({ ss }: { ss: SubSection }) {
       )}
       {ss.text && (
         <p style={{ fontFamily: t.fontBody, fontSize: t.sizeBody, color: t.colorText, lineHeight: 1.5, margin: '0 0 5px 0', textAlign: 'justify' }}>
-          {ss.text}
+          <BoldText text={ss.text} />
         </p>
       )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
