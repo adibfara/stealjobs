@@ -315,7 +315,7 @@ export function SubSectionEditor({ subsection, onChange, onDelete, id }: SubSect
   // Ensure at least one bullet/tag row exists when section is expanded
   React.useEffect(() => {
     if (!collapsed) {
-      let updated = { ...subsection };
+      const updated = { ...subsection };
       let changed = false;
       if (subsection.bullets.length === 0) {
         const id = genId();

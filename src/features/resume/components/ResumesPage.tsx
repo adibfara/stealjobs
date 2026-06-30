@@ -21,6 +21,7 @@ import {
   genId,
 } from '@/lib/resumeStorage';
 import type { ResumeData } from '@/types/resume';
+import { ApplicationsSection } from './ApplicationsSection';
 
 interface DocCardProps {
   r: ResumeData;
@@ -347,6 +348,8 @@ export function ResumesPage() {
           onExport={r => exportResumeAsJson(r)}
           creating={!!creating}
         />
+
+        <ApplicationsSection resumes={resumes} />
       </main>
 
       <Dialog open={!!duplicateSource} onOpenChange={open => { if (!open) setDuplicateSource(null); }}>
