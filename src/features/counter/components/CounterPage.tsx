@@ -54,7 +54,7 @@ export function CounterPage() {
 
         <div className="mt-[var(--spacing-xl)] border-t border-border pt-[var(--spacing-lg)]">
           <Button asChild variant="secondary" className="w-full">
-            <Link to="/input">
+            <Link to="/">
               <FileText className="mr-[var(--spacing-sm)] h-4 w-4" />
               Open Form
             </Link>

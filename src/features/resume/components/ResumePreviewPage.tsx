@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Printer, FileDown, ChevronDown, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getResume, getResumes } from '@/lib/resumeStorage';
+import { getResume } from '@/lib/resumeStorage';
 import { TEMPLATES, COVER_LETTER_TEMPLATES, getTemplate, getCoverLetterTemplate } from './templates';
 import { exportToWord } from '@/lib/wordExport';
 import type { ResumeData } from '@/types/resume';

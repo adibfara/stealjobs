@@ -1,5 +1,4 @@
-﻿import * as React from 'react';
-import type {ResumeData, SubSection} from './shared';
+﻿import type {ResumeData, SubSection} from './shared';
 import {ImagesBlock, LinkedText, TemplateIcon, BoldText} from './shared';
 import {modernTheme as t} from './templateThemes';
 

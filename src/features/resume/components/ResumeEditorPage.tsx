@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import {
-  ArrowLeft, Eye, Download, Plus, Save, Pencil, Check, X,
+  ArrowLeft, Eye, Download, Plus, Pencil, Check, X,
 } from 'lucide-react';
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
