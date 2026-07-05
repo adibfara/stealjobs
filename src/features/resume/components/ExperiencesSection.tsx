@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Plus, Trash2, Pencil, Search, ChevronDown, ChevronRight, GripVertical, X, Briefcase, Upload, Download } from 'lucide-react';
+import { Plus, Trash2, Pencil, Search, ChevronDown, ChevronRight, GripVertical, X, Briefcase, Upload, Download, Tags as TagsIcon, MoreHorizontal } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -20,8 +20,11 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import {
   getExperiences, saveExperience, saveExperienceOrder, deleteExperience, createExperience,
-  getAllTags, getAllCompanies, exportExperiencesAsJson,
+  getAllTags, getAllCompanies, exportExperiencesAsJson, getFavoriteTags, saveFavoriteTags,
 } from '@/lib/experienceStorage';
 import type { ExperienceData } from '@/types/experience';
 import { cn } from '@/lib/utils';
@@ -400,6 +403,62 @@ function ImportDialog({
   );
 }
 
+// ── TagsDialog ──────────────────────────────────────────────────────────────
+
+function TagsDialog({
+  open,
+  onClose,
+  allTags,
+  favoriteTags,
+  onToggle,
+}: {
+  open: boolean;
+  onClose: () => void;
+  allTags: string[];
+  favoriteTags: string[];
+  onToggle: (t: string) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={o => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Favorite tags</DialogTitle>
+          <DialogDescription>Select tags to pin them at the top and highlight them.</DialogDescription>
+        </DialogHeader>
+        <div className="py-2">
+          {allTags.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No tags yet.</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {[...allTags].sort((a, b) => a.localeCompare(b)).map(t => {
+                const isSelected = favoriteTags.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => onToggle(t)}
+                    className={cn(
+                      'rounded-full border-2 px-2.5 py-1 text-xs font-medium',
+                      isSelected
+                        ? 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                        : 'border-border bg-muted text-muted-foreground hover:bg-accent'
+                    )}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── ExperienceCard ─────────────────────────────────────────────────────────────
 
 function ExperienceCard({
@@ -407,11 +466,13 @@ function ExperienceCard({
   onEdit,
   onDelete,
   sortable,
+  favoriteTags,
 }: {
   exp: ExperienceData;
   onEdit: (exp: ExperienceData) => void;
   onDelete: (id: string) => void;
   sortable: boolean;
+  favoriteTags: string[];
 }) {
   const [expanded, setExpanded] = React.useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -419,7 +480,7 @@ function ExperienceCard({
 
   const cgarlJoined = CGARL_FIELDS
     .filter(f => exp[f.key].length > 0)
-    .map(f => `${f.emoji} ${exp[f.key].join(', ')}`)
+    .map(f => `${f.emoji} ${exp[f.key].slice(0, 2).join(', ')}`)
     .join(', ');
 
   return (
@@ -427,7 +488,7 @@ function ExperienceCard({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        'group rounded-xl border border-border bg-card p-4 shadow-sm transition-all hover:border-primary/30',
+        'group rounded-xl border border-border bg-card p-2.5 shadow-sm transition-all hover:border-primary/30',
         isDragging && 'opacity-50'
       )}
     >
@@ -451,17 +512,28 @@ function ExperienceCard({
           {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
         <div className="min-w-0 flex-1 cursor-pointer" onClick={() => onEdit(exp)}>
-          <h3 className="font-semibold leading-tight truncate">{exp.title}</h3>
-          {exp.company && <p className="mt-0.5 text-xs text-muted-foreground">{exp.company}</p>}
-          {exp.tags.length > 0 && (
-            <div className="mt-1.5 flex flex-wrap gap-1">
-              {exp.tags.map(t => (
-                <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{t}</span>
-              ))}
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold leading-tight truncate">{exp.title}</h3>
+            {exp.tags.length > 0 && (
+              <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                {[...exp.tags]
+                  .sort((a, b) => Number(favoriteTags.includes(b)) - Number(favoriteTags.includes(a)))
+                  .map(t => (
+                    <span
+                      key={t}
+                      className={cn(
+                        'rounded-full border px-2 py-0.5 text-xs text-muted-foreground',
+                        favoriteTags.includes(t) ? 'border-amber-500' : 'border-transparent bg-muted'
+                      )}
+                    >
+                      {t}
+                    </span>
+                  ))}
+              </div>
+            )}
+          </div>
           {!expanded && cgarlJoined && (
-            <p className="mt-1.5 line-clamp-3 text-xs text-muted-foreground">
+            <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">
               {cgarlJoined}
             </p>
           )}
@@ -513,8 +585,10 @@ export function ExperiencesSection() {
   const [addOpen, setAddOpen] = React.useState(false);
   const [editExp, setEditExp] = React.useState<ExperienceData | null>(null);
   const [importOpen, setImportOpen] = React.useState(false);
+  const [tagsOpen, setTagsOpen] = React.useState(false);
+  const [favoriteTags, setFavoriteTags] = React.useState<string[]>([]);
 
-  React.useEffect(() => { setExperiences(getExperiences()); }, []);
+  React.useEffect(() => { setExperiences(getExperiences()); setFavoriteTags(getFavoriteTags()); }, []);
 
   function refresh() { setExperiences(getExperiences()); }
 
@@ -590,25 +664,6 @@ export function ExperiencesSection() {
 
   return (
     <div className="mb-10">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold">Experiences</h2>
-        <div className="flex items-center gap-2">
-          {hasAny && (
-            <>
-              <Button variant="outline" size="sm" onClick={handleExport} title="Export as JSON">
-                <Download className="mr-1.5 h-4 w-4" /> Export
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-                <Upload className="mr-1.5 h-4 w-4" /> Import
-              </Button>
-            </>
-          )}
-          <Button size="sm" onClick={() => setAddOpen(true)}>
-            <Plus className="mr-1.5 h-4 w-4" /> New Experience
-          </Button>
-        </div>
-      </div>
-
       {!hasAny ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
@@ -649,25 +704,58 @@ export function ExperiencesSection() {
               {allCompanies.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
 
+            <Button size="sm" className="h-9" onClick={() => setAddOpen(true)} title="New Experience">
+              <Plus className="h-4 w-4" />
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTagsOpen(true)}>
+                  <TagsIcon className="mr-1.5 h-4 w-4" /> Tags
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExport}>
+                  <Download className="mr-1.5 h-4 w-4" /> Export
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setImportOpen(true)}>
+                  <Upload className="mr-1.5 h-4 w-4" /> Import
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {allTags.length > 0 && (
             <div className="mb-4 flex flex-wrap gap-1.5">
-              {[...allTags].sort((a, b) => a.localeCompare(b)).map(t => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => toggleTagFilter(t)}
-                  className={cn(
-                    'rounded-full border px-2 py-0.5 text-xs',
-                    tagFilters.includes(t)
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border bg-muted text-muted-foreground hover:bg-accent'
-                  )}
-                >
-                  {t}
-                </button>
-              ))}
+              {[...allTags]
+                .sort((a, b) => {
+                  const favDiff = Number(favoriteTags.includes(b)) - Number(favoriteTags.includes(a));
+                  return favDiff !== 0 ? favDiff : a.localeCompare(b);
+                })
+                .map(t => {
+                  const isFav = favoriteTags.includes(t);
+                  const isActive = tagFilters.includes(t);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => toggleTagFilter(t)}
+                      className={cn(
+                        'rounded-full border-2 px-2 py-0.5 text-xs',
+                        isActive
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : isFav
+                          ? 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
+                          : 'border-border bg-muted text-muted-foreground hover:bg-accent'
+                      )}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
             </div>
           )}
 
@@ -685,7 +773,7 @@ export function ExperiencesSection() {
           ) : filtersApplied ? (
             <div className="grid gap-3">
               {filtered.map(exp => (
-                <ExperienceCard key={exp.id} exp={exp} onEdit={setEditExp} onDelete={handleDelete} sortable={false} />
+                <ExperienceCard key={exp.id} exp={exp} onEdit={setEditExp} onDelete={handleDelete} sortable={false} favoriteTags={favoriteTags} />
               ))}
             </div>
           ) : (
@@ -693,7 +781,7 @@ export function ExperiencesSection() {
               <SortableContext items={experiences.map(e => e.id)} strategy={verticalListSortingStrategy}>
                 <div className="grid gap-3">
                   {experiences.map(exp => (
-                    <ExperienceCard key={exp.id} exp={exp} onEdit={setEditExp} onDelete={handleDelete} sortable />
+                    <ExperienceCard key={exp.id} exp={exp} onEdit={setEditExp} onDelete={handleDelete} sortable favoriteTags={favoriteTags} />
                   ))}
                 </div>
               </SortableContext>
@@ -705,6 +793,17 @@ export function ExperiencesSection() {
       <AddDialog open={addOpen} onClose={() => setAddOpen(false)} onSave={handleSaveNew} />
       <EditDialog exp={editExp} onClose={() => setEditExp(null)} onSave={handleSaveEdit} tagSuggestions={allTags} />
       <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} onImport={handleImport} />
+      <TagsDialog
+        open={tagsOpen}
+        onClose={() => setTagsOpen(false)}
+        allTags={allTags}
+        favoriteTags={favoriteTags}
+        onToggle={t => {
+          const next = favoriteTags.includes(t) ? favoriteTags.filter(x => x !== t) : [...favoriteTags, t];
+          saveFavoriteTags(next);
+          setFavoriteTags(next);
+        }}
+      />
     </div>
   );
 }

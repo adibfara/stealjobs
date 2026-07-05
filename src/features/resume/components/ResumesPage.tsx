@@ -24,6 +24,9 @@ import type { ResumeData } from '@/types/resume';
 import { ApplicationsSection } from './ApplicationsSection';
 import { ExperiencesSection } from './ExperiencesSection';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 interface DocCardProps {
   r: ResumeData;
@@ -269,41 +272,49 @@ export function ResumesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top bar */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="mx-auto max-w-5xl flex items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Adib Job Helper</h1>
+      <Tabs defaultValue="applications">
+        {/* Top bar */}
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+          <div className="mx-auto grid max-w-5xl grid-cols-3 items-center px-6 py-4">
+            <div className="flex items-center">
+              <TabsList>
+                <TabsTrigger value="applications">Applications</TabsTrigger>
+                <TabsTrigger value="experiences">Experiences</TabsTrigger>
+                <TabsTrigger value="resumes">Resumes</TabsTrigger>
+              </TabsList>
+            </div>
+            <h1 className="text-center text-xl font-bold tracking-tight">Jobs</h1>
+            <div className="flex items-center justify-end gap-2">
+              <input
+                ref={importRef}
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={handleImport}
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => importRef.current?.click()}>
+                    <Upload className="mr-1.5 h-4 w-4" /> Import
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setCreating('coverletter'); setNewName(''); }}>
+                    <Plus className="mr-1.5 h-4 w-4" /> Cover Letter
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setCreating('resume'); setNewName(''); }}>
+                    <Plus className="mr-1.5 h-4 w-4" /> Resume
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <input
-              ref={importRef}
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={handleImport}
-            />
-            <Button variant="outline" size="sm" onClick={() => importRef.current?.click()}>
-              <Upload className="mr-1.5 h-4 w-4" /> Import
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => { setCreating('coverletter'); setNewName(''); }}>
-              <Plus className="mr-1.5 h-4 w-4" /> New Cover Letter
-            </Button>
-            <Button size="sm" onClick={() => { setCreating('resume'); setNewName(''); }}>
-              <Plus className="mr-1.5 h-4 w-4" /> New Resume
-            </Button>
-          </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-8">
-        <Tabs defaultValue="applications">
-          <TabsList className="mb-6">
-            <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="experiences">Experiences</TabsTrigger>
-            <TabsTrigger value="resumes">Resumes</TabsTrigger>
-          </TabsList>
-
+        <main className="mx-auto max-w-5xl px-6 pb-8 pt-3">
           <TabsContent value="applications">
             <ApplicationsSection resumes={resumes} />
           </TabsContent>
@@ -364,8 +375,8 @@ export function ResumesPage() {
               creating={!!creating}
             />
           </TabsContent>
-        </Tabs>
-      </main>
+        </main>
+      </Tabs>
 
       <Dialog open={!!duplicateSource} onOpenChange={open => { if (!open) setDuplicateSource(null); }}>
         <DialogContent>

@@ -2,6 +2,7 @@ import { genId } from './resumeStorage';
 import type { ExperienceData } from '@/types/experience';
 
 const KEY = 'resume-builder-experiences';
+const FAV_TAGS_KEY = 'resume-builder-favorite-tags';
 
 export function getExperiences(): ExperienceData[] {
   try {
@@ -68,6 +69,18 @@ export function getAllCompanies(): string[] {
   const companies = new Set<string>();
   getExperiences().forEach(e => { if (e.company) companies.add(e.company); });
   return [...companies].sort((a, b) => a.localeCompare(b));
+}
+
+export function getFavoriteTags(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(FAV_TAGS_KEY) ?? '[]') as string[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveFavoriteTags(tags: string[]): void {
+  localStorage.setItem(FAV_TAGS_KEY, JSON.stringify(tags));
 }
 
 export function exportExperiencesAsJson(experiences: ExperienceData[]): void {
