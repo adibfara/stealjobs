@@ -314,7 +314,7 @@ export function ResumesPage() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-5xl px-6 pb-8 pt-3">
+        <main className="mx-auto w-full max-w-5xl px-6 pb-8 pt-3">
           <TabsContent value="applications">
             <ApplicationsSection resumes={resumes} />
           </TabsContent>
