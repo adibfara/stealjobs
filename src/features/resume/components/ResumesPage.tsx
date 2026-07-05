@@ -22,6 +22,8 @@ import {
 } from '@/lib/resumeStorage';
 import type { ResumeData } from '@/types/resume';
 import { ApplicationsSection } from './ApplicationsSection';
+import { ExperiencesSection } from './ExperiencesSection';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 interface DocCardProps {
   r: ResumeData;
@@ -271,10 +273,7 @@ export function ResumesPage() {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="mx-auto max-w-5xl flex items-center justify-between px-6 py-4">
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Resume Builder</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {resumes.length} document{resumes.length !== 1 ? 's' : ''} saved locally
-            </p>
+            <h1 className="text-xl font-bold tracking-tight">Adib Job Helper</h1>
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -298,58 +297,74 @@ export function ResumesPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-8">
-        {/* New document form */}
-        {creating && (
-          <div className="mb-6 rounded-xl border border-primary/30 bg-card p-4 shadow-sm">
-            <p className="mb-2 text-sm font-medium">
-              {creating === 'coverletter' ? 'Name your cover letter' : 'Name your resume'}
-            </p>
-            <div className="flex gap-2">
-              <input
-                autoFocus
-                type="text"
-                value={newName}
-                onChange={e => setNewName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') handleCreate();
-                  if (e.key === 'Escape') { setCreating(null); setNewName(''); }
-                }}
-                placeholder={creating === 'coverletter' ? 'e.g. Google Cover Letter' : 'e.g. Software Engineer 2025'}
-                className="flex h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-              <Button onClick={handleCreate}>Create</Button>
-              <Button variant="ghost" onClick={() => { setCreating(null); setNewName(''); }}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )}
+        <Tabs defaultValue="applications">
+          <TabsList className="mb-6">
+            <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="experiences">Experiences</TabsTrigger>
+            <TabsTrigger value="resumes">Resumes</TabsTrigger>
+          </TabsList>
 
-        <ResumeSection
-          items={resumes.filter(r => !r.type || r.type === 'resume')}
-          title="Resumes"
-          emptyLabel="No resumes yet"
-          emptyDesc="Create your first resume or import an existing one."
-          onCreateClick={() => { setCreating('resume'); setNewName(''); }}
-          onNavigate={id => navigate({ to: '/resume/$resumeId', params: { resumeId: id } })}
-          onDelete={(id, e) => handleDelete(id, e, 'resume')}
-          onDuplicate={handleDuplicate}
-          onExport={r => exportResumeAsJson(r)}
-          icon="resume"
-          creating={!!creating}
-        />
+          <TabsContent value="applications">
+            <ApplicationsSection resumes={resumes} />
+          </TabsContent>
 
-        <CoverLetterSection
-          items={resumes.filter(r => r.type === 'coverletter')}
-          onCreateClick={() => { setCreating('coverletter'); setNewName(''); }}
-          onNavigate={id => navigate({ to: '/resume/$resumeId', params: { resumeId: id } })}
-          onDelete={(id, e) => handleDelete(id, e, 'cover letter')}
-          onDuplicate={handleDuplicate}
-          onExport={r => exportResumeAsJson(r)}
-          creating={!!creating}
-        />
+          <TabsContent value="experiences">
+            <ExperiencesSection />
+          </TabsContent>
 
-        <ApplicationsSection resumes={resumes} />
+          <TabsContent value="resumes">
+            {/* New document form */}
+            {creating && (
+              <div className="mb-6 rounded-xl border border-primary/30 bg-card p-4 shadow-sm">
+                <p className="mb-2 text-sm font-medium">
+                  {creating === 'coverletter' ? 'Name your cover letter' : 'Name your resume'}
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={newName}
+                    onChange={e => setNewName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleCreate();
+                      if (e.key === 'Escape') { setCreating(null); setNewName(''); }
+                    }}
+                    placeholder={creating === 'coverletter' ? 'e.g. Google Cover Letter' : 'e.g. Software Engineer 2025'}
+                    className="flex h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <Button onClick={handleCreate}>Create</Button>
+                  <Button variant="ghost" onClick={() => { setCreating(null); setNewName(''); }}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <ResumeSection
+              items={resumes.filter(r => !r.type || r.type === 'resume')}
+              title="Resumes"
+              emptyLabel="No resumes yet"
+              emptyDesc="Create your first resume or import an existing one."
+              onCreateClick={() => { setCreating('resume'); setNewName(''); }}
+              onNavigate={id => navigate({ to: '/resume/$resumeId', params: { resumeId: id } })}
+              onDelete={(id, e) => handleDelete(id, e, 'resume')}
+              onDuplicate={handleDuplicate}
+              onExport={r => exportResumeAsJson(r)}
+              icon="resume"
+              creating={!!creating}
+            />
+
+            <CoverLetterSection
+              items={resumes.filter(r => r.type === 'coverletter')}
+              onCreateClick={() => { setCreating('coverletter'); setNewName(''); }}
+              onNavigate={id => navigate({ to: '/resume/$resumeId', params: { resumeId: id } })}
+              onDelete={(id, e) => handleDelete(id, e, 'cover letter')}
+              onDuplicate={handleDuplicate}
+              onExport={r => exportResumeAsJson(r)}
+              creating={!!creating}
+            />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Dialog open={!!duplicateSource} onOpenChange={open => { if (!open) setDuplicateSource(null); }}>
