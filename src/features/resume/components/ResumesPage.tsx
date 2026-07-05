@@ -21,6 +21,7 @@ import {
   genId,
 } from '@/lib/resumeStorage';
 import type { ResumeData } from '@/types/resume';
+import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 import { ApplicationsSection } from './ApplicationsSection';
 import { ExperiencesSection } from './ExperiencesSection';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -292,6 +293,7 @@ export function ResumesPage() {
                 className="hidden"
                 onChange={handleImport}
               />
+              <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button size="sm">
