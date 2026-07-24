@@ -26,6 +26,7 @@ import {
   getExperiences, saveExperience, saveExperienceOrder, deleteExperience, createExperience,
   getAllTags, getAllCompanies, exportExperiencesAsJson, getFavoriteTags, saveFavoriteTags,
 } from '@/lib/experienceStorage';
+import type { ExperienceExport } from '@/lib/experienceStorage';
 import type { ExperienceData } from '@/types/experience';
 import { cn } from '@/lib/utils';
 
@@ -102,7 +103,6 @@ const CGARL_FIELDS = [
   { key: 'learning', emoji: '💡', label: 'Learning' },
 ] as const;
 
-type CgarlKey = typeof CGARL_FIELDS[number]['key'];
 
 function ListField({
   items,
@@ -339,7 +339,7 @@ function ImportDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onImport: (experiences: ExperienceData[]) => void;
+  onImport: (experiences: ExperienceData[], favoriteTags?: string[]) => void;
 }) {
   const [raw, setRaw] = React.useState('');
   const [error, setError] = React.useState('');
@@ -348,9 +348,13 @@ function ImportDialog({
 
   function handleImport() {
     try {
-      const parsed = JSON.parse(raw) as Partial<ExperienceData>[];
-      if (!Array.isArray(parsed)) throw new Error('Expected a JSON array');
-      const experiences: ExperienceData[] = parsed.map(item => {
+      const doc = JSON.parse(raw) as Partial<ExperienceExport> | Partial<ExperienceData>[];
+      // Accept either the exported bundle { experiences, favoriteTags } or a bare array.
+      const items = Array.isArray(doc) ? doc : doc.experiences;
+      const favoriteTags = Array.isArray(doc) ? undefined
+        : Array.isArray(doc.favoriteTags) ? doc.favoriteTags : undefined;
+      if (!Array.isArray(items)) throw new Error('Expected a JSON array or { experiences: [...] } object');
+      const experiences: ExperienceData[] = items.map(item => {
         if (!item.title) throw new Error('Each item must have a "title" field');
         const base = createExperience();
         return {
@@ -370,7 +374,7 @@ function ImportDialog({
           lastModified: item.lastModified ?? Date.now(),
         };
       });
-      onImport(experiences);
+      onImport(experiences, favoriteTags);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Invalid JSON');
     }
@@ -382,7 +386,7 @@ function ImportDialog({
         <DialogHeader>
           <DialogTitle>Import experiences</DialogTitle>
           <DialogDescription>
-            Paste a JSON array. Each item: <code className="text-xs bg-muted px-1 rounded">{'{ title, company?, tags?, context?, goal?, action?, result?, learning?, description? }'}</code>
+            Paste an exported file <code className="text-xs bg-muted px-1 rounded">{'{ experiences: [...], favoriteTags: [...] }'}</code> or a bare JSON array. Each item: <code className="text-xs bg-muted px-1 rounded">{'{ title, company?, tags?, context?, goal?, action?, result?, learning?, description? }'}</code>
           </DialogDescription>
         </DialogHeader>
         <div className="py-2">
@@ -512,10 +516,10 @@ function ExperienceCard({
           {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
         <div className="min-w-0 flex-1 cursor-pointer" onClick={() => onEdit(exp)}>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-2">
             <h3 className="font-semibold leading-tight truncate">{exp.title}</h3>
             {exp.tags.length > 0 && (
-              <div className="flex shrink-0 flex-wrap justify-end gap-1">
+              <div className="flex flex-wrap gap-1 lg:shrink-0 lg:justify-end">
                 {[...exp.tags]
                   .sort((a, b) => Number(favoriteTags.includes(b)) - Number(favoriteTags.includes(a)))
                   .map(t => (
@@ -632,8 +636,13 @@ export function ExperiencesSection() {
     refresh();
   }
 
-  function handleImport(imported: ExperienceData[]) {
+  function handleImport(imported: ExperienceData[], importedFavoriteTags?: string[]) {
     imported.forEach(e => saveExperience(e));
+    if (importedFavoriteTags) {
+      const next = Array.from(new Set([...favoriteTags, ...importedFavoriteTags]));
+      saveFavoriteTags(next);
+      setFavoriteTags(next);
+    }
     refresh();
     setImportOpen(false);
   }

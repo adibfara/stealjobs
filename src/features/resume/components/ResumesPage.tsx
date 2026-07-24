@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Plus, FileText, Download, Upload, Trash2, Clock, ChevronRight, Copy, Mail } from 'lucide-react';
+import { Plus, FileText, Download, Upload, Trash2, Clock, ChevronRight, Copy, Mail, DatabaseBackup, HardDriveDownload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,6 +21,7 @@ import {
   genId,
 } from '@/lib/resumeStorage';
 import type { ResumeData } from '@/types/resume';
+import { downloadAppBackup, copyAppBackupToClipboard, restoreAppBackup } from '@/lib/appBackup';
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 import { ApplicationsSection } from './ApplicationsSection';
 import { ExperiencesSection } from './ExperiencesSection';
@@ -197,6 +198,11 @@ export function ResumesPage() {
   const [conflictNewName, setConflictNewName] = React.useState('');
   const [duplicateSource, setDuplicateSource] = React.useState<ResumeData | null>(null);
   const [duplicateName, setDuplicateName] = React.useState('');
+  const [backupImportOpen, setBackupImportOpen] = React.useState(false);
+  const [backupRaw, setBackupRaw] = React.useState('');
+  const [backupError, setBackupError] = React.useState('');
+  const [exportedNote, setExportedNote] = React.useState('');
+  const backupFileRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     setResumes(getResumes().sort((a, b) => b.lastModified - a.lastModified));
@@ -263,6 +269,37 @@ export function ResumesPage() {
     refresh();
   }
 
+  async function handleExportAll() {
+    downloadAppBackup();
+    const copied = await copyAppBackupToClipboard();
+    setExportedNote(copied ? 'Backup downloaded and copied to clipboard.' : 'Backup downloaded (clipboard unavailable).');
+    setTimeout(() => setExportedNote(''), 4000);
+  }
+
+  function applyBackupRestore(raw: string) {
+    try {
+      restoreAppBackup(raw);
+      // Full-state change — reload so every section reflects the restored data.
+      window.location.reload();
+    } catch (err) {
+      setBackupError(err instanceof Error ? err.message : 'Invalid backup file');
+    }
+  }
+
+  async function handleBackupFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!confirm('Restoring will replace ALL current data (resumes, experiences, applications, tags, settings). Continue?')) return;
+    applyBackupRestore(await file.text());
+  }
+
+  function handleBackupPaste() {
+    if (!backupRaw.trim()) return;
+    if (!confirm('Restoring will replace ALL current data (resumes, experiences, applications, tags, settings). Continue?')) return;
+    applyBackupRestore(backupRaw);
+  }
+
   function handleConflictCreateNew() {
     if (!conflictResume) return;
     const now = Date.now();
@@ -293,6 +330,9 @@ export function ResumesPage() {
                 className="hidden"
                 onChange={handleImport}
               />
+              {exportedNote && (
+                <span className="text-xs text-muted-foreground">{exportedNote}</span>
+              )}
               <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -309,6 +349,12 @@ export function ResumesPage() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => { setCreating('resume'); setNewName(''); }}>
                     <Plus className="mr-1.5 h-4 w-4" /> Resume
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportAll}>
+                    <HardDriveDownload className="mr-1.5 h-4 w-4" /> Export all data
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setBackupRaw(''); setBackupError(''); setBackupImportOpen(true); }}>
+                    <DatabaseBackup className="mr-1.5 h-4 w-4" /> Import all data
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -379,6 +425,41 @@ export function ResumesPage() {
           </TabsContent>
         </main>
       </Tabs>
+
+      <input
+        ref={backupFileRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleBackupFile}
+      />
+
+      <Dialog open={backupImportOpen} onOpenChange={open => { if (!open) setBackupImportOpen(false); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Import all data</DialogTitle>
+            <DialogDescription>
+              Restore a full backup (resumes, experiences, applications, tags, settings). This replaces all current data. Upload a file or paste the backup JSON.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <Button variant="outline" size="sm" className="mb-3" onClick={() => backupFileRef.current?.click()}>
+              <Upload className="mr-1.5 h-4 w-4" /> Choose backup file…
+            </Button>
+            <textarea
+              className="flex min-h-[160px] w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs outline-none focus:ring-2 focus:ring-ring resize-none"
+              value={backupRaw}
+              onChange={e => { setBackupRaw(e.target.value); setBackupError(''); }}
+              placeholder='{ "app": "adib-resume-builder", "version": 1, "data": { ... } }'
+            />
+            {backupError && <p className="mt-1.5 text-xs text-destructive">{backupError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setBackupImportOpen(false)}>Cancel</Button>
+            <Button onClick={handleBackupPaste} disabled={!backupRaw.trim()}>Restore</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!duplicateSource} onOpenChange={open => { if (!open) setDuplicateSource(null); }}>
         <DialogContent>

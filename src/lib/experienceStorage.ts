@@ -83,8 +83,19 @@ export function saveFavoriteTags(tags: string[]): void {
   localStorage.setItem(FAV_TAGS_KEY, JSON.stringify(tags));
 }
 
+export interface ExperienceExport {
+  version: 1;
+  experiences: ExperienceData[];
+  favoriteTags: string[];
+}
+
 export function exportExperiencesAsJson(experiences: ExperienceData[]): void {
-  const json = JSON.stringify(experiences, null, 2);
+  const payload: ExperienceExport = {
+    version: 1,
+    experiences,
+    favoriteTags: getFavoriteTags(),
+  };
+  const json = JSON.stringify(payload, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
