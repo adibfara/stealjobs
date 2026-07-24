@@ -563,36 +563,36 @@ export function ApplicationsSection({ resumes }: { resumes: ResumeData[] }) {
   const [copied, setCopied] = React.useState(false);
 
   React.useEffect(() => {
-    setApps(getApplications());
+    getApplications().then(setApps);
   }, []);
 
-  function refresh() { setApps(getApplications()); }
+  async function refresh() { setApps(await getApplications()); }
 
-  function handleSaveNew(app: ApplicationData) {
-    saveApplication(app);
+  async function handleSaveNew(app: ApplicationData) {
+    await saveApplication(app);
     refresh();
     setAddOpen(false);
   }
 
-  function handleSaveEdit(app: ApplicationData) {
-    saveApplication(app);
+  async function handleSaveEdit(app: ApplicationData) {
+    await saveApplication(app);
     refresh();
     setEditApp(null);
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!confirm('Delete this application?')) return;
-    deleteApplication(id);
+    await deleteApplication(id);
     refresh();
   }
 
-  function handleImport(imported: ApplicationData[]) {
-    imported.forEach(a => saveApplication(a));
+  async function handleImport(imported: ApplicationData[]) {
+    await Promise.all(imported.map(a => saveApplication(a)));
     refresh();
     setImportOpen(false);
   }
 
-  function handleStageChange(app: ApplicationData, stage: ApplicationStage) {
+  async function handleStageChange(app: ApplicationData, stage: ApplicationStage) {
     const now = Date.now();
     const updated: ApplicationData = {
       ...app,
@@ -600,7 +600,7 @@ export function ApplicationsSection({ resumes }: { resumes: ResumeData[] }) {
       lastModified: now,
       timeline: [...app.timeline, { stage, at: now }],
     };
-    saveApplication(updated);
+    await saveApplication(updated);
     refresh();
   }
 

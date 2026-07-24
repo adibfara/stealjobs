@@ -1,47 +1,58 @@
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  writeBatch,
+} from 'firebase/firestore';
+import { db, requireUid } from './firebase';
 import { genId } from './resumeStorage';
 import type { ExperienceData } from '@/types/experience';
 
-const KEY = 'resume-builder-experiences';
-const FAV_TAGS_KEY = 'resume-builder-favorite-tags';
-
-export function getExperiences(): ExperienceData[] {
-  try {
-    const all = JSON.parse(localStorage.getItem(KEY) ?? '[]') as ExperienceData[];
-    return all
-      .map(e => ({
-        ...e,
-        context: e.context ?? [],
-        goal: e.goal ?? [],
-        action: e.action ?? [],
-        result: e.result ?? [],
-        learning: e.learning ?? [],
-      }))
-      .sort((a, b) => a.order - b.order);
-  } catch {
-    return [];
-  }
+function experiencesCol(uid: string) {
+  return collection(db, 'users', uid, 'experiences');
 }
 
-export function saveExperience(exp: ExperienceData): void {
-  const all = getExperiences();
-  const idx = all.findIndex(e => e.id === exp.id);
-  if (idx >= 0) all[idx] = exp;
-  else all.push(exp);
-  localStorage.setItem(KEY, JSON.stringify(all));
+function normalize(e: ExperienceData): ExperienceData {
+  return {
+    ...e,
+    context: e.context ?? [],
+    goal: e.goal ?? [],
+    action: e.action ?? [],
+    result: e.result ?? [],
+    learning: e.learning ?? [],
+  };
 }
 
-export function saveExperienceOrder(ordered: ExperienceData[]): void {
-  const withOrder = ordered.map((e, i) => ({ ...e, order: i }));
-  localStorage.setItem(KEY, JSON.stringify(withOrder));
+export async function getExperiences(): Promise<ExperienceData[]> {
+  const snap = await getDocs(experiencesCol(requireUid()));
+  return snap.docs
+    .map(d => normalize(d.data() as ExperienceData))
+    .sort((a, b) => a.order - b.order);
 }
 
-export function deleteExperience(id: string): void {
-  localStorage.setItem(KEY, JSON.stringify(getExperiences().filter(e => e.id !== id)));
+export async function saveExperience(exp: ExperienceData): Promise<void> {
+  const uid = requireUid();
+  await setDoc(doc(db, 'users', uid, 'experiences', exp.id), exp);
+}
+
+export async function saveExperienceOrder(ordered: ExperienceData[]): Promise<void> {
+  const uid = requireUid();
+  const batch = writeBatch(db);
+  ordered.forEach((e, i) => {
+    batch.set(doc(db, 'users', uid, 'experiences', e.id), { ...e, order: i });
+  });
+  await batch.commit();
+}
+
+export async function deleteExperience(id: string): Promise<void> {
+  await deleteDoc(doc(db, 'users', requireUid(), 'experiences', id));
 }
 
 export function createExperience(): ExperienceData {
   const now = Date.now();
-  const maxOrder = getExperiences().reduce((max, e) => Math.max(max, e.order), -1);
   return {
     id: genId(),
     title: '',
@@ -53,34 +64,41 @@ export function createExperience(): ExperienceData {
     result: [],
     learning: [],
     description: '',
-    order: maxOrder + 1,
+    // Timestamp order keeps new items monotonically increasing (sorted last);
+    // saveExperienceOrder reindexes to 0..n on manual drag-reorder.
+    order: now,
     createdAt: now,
     lastModified: now,
   };
 }
 
-export function getAllTags(): string[] {
+/** Pure: derive the sorted unique tag list from an already-loaded experience list. */
+export function getAllTags(experiences: ExperienceData[]): string[] {
   const tags = new Set<string>();
-  getExperiences().forEach(e => e.tags.forEach(t => tags.add(t)));
+  experiences.forEach(e => e.tags.forEach(t => tags.add(t)));
   return [...tags].sort((a, b) => a.localeCompare(b));
 }
 
-export function getAllCompanies(): string[] {
+/** Pure: derive the sorted unique company list from an already-loaded experience list. */
+export function getAllCompanies(experiences: ExperienceData[]): string[] {
   const companies = new Set<string>();
-  getExperiences().forEach(e => { if (e.company) companies.add(e.company); });
+  experiences.forEach(e => { if (e.company) companies.add(e.company); });
   return [...companies].sort((a, b) => a.localeCompare(b));
 }
 
-export function getFavoriteTags(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(FAV_TAGS_KEY) ?? '[]') as string[];
-  } catch {
-    return [];
-  }
+export async function getFavoriteTags(): Promise<string[]> {
+  const snap = await getDoc(doc(db, 'users', requireUid(), 'settings', 'prefs'));
+  const data = snap.data() as { favoriteTags?: string[] } | undefined;
+  return data?.favoriteTags ?? [];
 }
 
-export function saveFavoriteTags(tags: string[]): void {
-  localStorage.setItem(FAV_TAGS_KEY, JSON.stringify(tags));
+export async function saveFavoriteTags(tags: string[]): Promise<void> {
+  const uid = requireUid();
+  await setDoc(
+    doc(db, 'users', uid, 'settings', 'prefs'),
+    { favoriteTags: tags },
+    { merge: true },
+  );
 }
 
 export interface ExperienceExport {
@@ -89,11 +107,14 @@ export interface ExperienceExport {
   favoriteTags: string[];
 }
 
-export function exportExperiencesAsJson(experiences: ExperienceData[]): void {
+export function exportExperiencesAsJson(
+  experiences: ExperienceData[],
+  favoriteTags: string[],
+): void {
   const payload: ExperienceExport = {
     version: 1,
     experiences,
-    favoriteTags: getFavoriteTags(),
+    favoriteTags,
   };
   const json = JSON.stringify(payload, null, 2);
   const blob = new Blob([json], { type: 'application/json' });

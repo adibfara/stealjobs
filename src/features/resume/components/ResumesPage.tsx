@@ -204,27 +204,28 @@ export function ResumesPage() {
   const [exportedNote, setExportedNote] = React.useState('');
   const backupFileRef = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
-    setResumes(getResumes().sort((a, b) => b.lastModified - a.lastModified));
-  }, []);
-
-  function refresh() {
-    setResumes(getResumes().sort((a, b) => b.lastModified - a.lastModified));
+  async function refresh() {
+    const list = await getResumes();
+    setResumes(list.sort((a, b) => b.lastModified - a.lastModified));
   }
 
-  function handleCreate() {
+  React.useEffect(() => {
+    refresh();
+  }, []);
+
+  async function handleCreate() {
     if (!creating) return;
     const isCover = creating === 'coverletter';
     const name = newName.trim() || (isCover ? 'Untitled Cover Letter' : 'Untitled Resume');
     const r = isCover ? createCoverLetter(name) : createResume(name);
-    saveResume(r);
+    await saveResume(r);
     navigate({ to: '/resume/$resumeId', params: { resumeId: r.id } });
   }
 
-  function handleDelete(id: string, e: React.MouseEvent, label = 'resume') {
+  async function handleDelete(id: string, e: React.MouseEvent, label = 'resume') {
     e.stopPropagation();
     if (!confirm(`Delete this ${label}?`)) return;
-    deleteResume(id);
+    await deleteResume(id);
     refresh();
   }
 
@@ -233,13 +234,13 @@ export function ResumesPage() {
     if (!file) return;
     try {
       const r = await importResumeFromFile(file);
-      const exists = getResumes().some(existing => existing.id === r.id);
+      const exists = (await getResumes()).some(existing => existing.id === r.id);
       if (exists) {
         setConflictResume(r);
         setConflictNewName(r.name);
       } else {
         r.lastModified = Date.now();
-        saveResume(r);
+        await saveResume(r);
         refresh();
       }
     } catch {
@@ -248,9 +249,9 @@ export function ResumesPage() {
     e.target.value = '';
   }
 
-  function handleConflictOverwrite() {
+  async function handleConflictOverwrite() {
     if (!conflictResume) return;
-    saveResume({ ...conflictResume, lastModified: Date.now() });
+    await saveResume({ ...conflictResume, lastModified: Date.now() });
     setConflictResume(null);
     refresh();
   }
@@ -261,10 +262,10 @@ export function ResumesPage() {
     setDuplicateName(`${r.name} (copy)`);
   }
 
-  function handleDuplicateConfirm() {
+  async function handleDuplicateConfirm() {
     if (!duplicateSource) return;
     const now = Date.now();
-    saveResume({ ...duplicateSource, id: genId(), name: duplicateName.trim() || `${duplicateSource.name} (copy)`, lastModified: now, createdAt: now });
+    await saveResume({ ...duplicateSource, id: genId(), name: duplicateName.trim() || `${duplicateSource.name} (copy)`, lastModified: now, createdAt: now });
     setDuplicateSource(null);
     refresh();
   }
@@ -300,10 +301,10 @@ export function ResumesPage() {
     applyBackupRestore(backupRaw);
   }
 
-  function handleConflictCreateNew() {
+  async function handleConflictCreateNew() {
     if (!conflictResume) return;
     const now = Date.now();
-    saveResume({ ...conflictResume, id: genId(), name: conflictNewName.trim() || conflictResume.name, lastModified: now, createdAt: now });
+    await saveResume({ ...conflictResume, id: genId(), name: conflictNewName.trim() || conflictResume.name, lastModified: now, createdAt: now });
     setConflictResume(null);
     refresh();
   }

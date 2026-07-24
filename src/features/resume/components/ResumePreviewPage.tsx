@@ -24,18 +24,22 @@ export function ResumePreviewPage() {
 
   // Load resume once
   React.useEffect(() => {
-    const r = getResume(resumeId);
-    if (!r) { navigate({ to: '/' }); return; }
-    setResume(r);
-    setTemplateId(r.selectedTemplate ?? 'modern-row');
+    let cancelled = false;
+    getResume(resumeId).then(r => {
+      if (cancelled) return;
+      if (!r) { navigate({ to: '/' }); return; }
+      setResume(r);
+      setTemplateId(r.selectedTemplate ?? 'modern-row');
+    });
+    return () => { cancelled = true; };
   }, [resumeId]);
 
-  // Auto-refresh every second
+  // Auto-refresh to reflect edits made in the editor tab (offline cache keeps this cheap).
   React.useEffect(() => {
-    const interval = setInterval(() => {
-      const r = getResume(resumeId);
+    const interval = setInterval(async () => {
+      const r = await getResume(resumeId);
       if (r) setResume(r);
-    }, 1000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [resumeId]);
 

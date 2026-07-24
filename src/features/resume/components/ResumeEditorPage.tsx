@@ -22,12 +22,12 @@ function createSection(): Section {
   return { id: genId(), title: '', subsections: [] };
 }
 
-function useDebouncedSave(resume: ResumeData | null, delay = 400) {
+function useDebouncedSave(resume: ResumeData | null, delay = 800) {
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   React.useEffect(() => {
     if (!resume) return;
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => saveResume(resume), delay);
+    timer.current = setTimeout(() => { void saveResume(resume); }, delay);
     return () => { if (timer.current) clearTimeout(timer.current); };
   }, [resume, delay]);
 }
@@ -51,12 +51,16 @@ export function ResumeEditorPage() {
   }, [resume]);
 
   React.useEffect(() => {
-    const r = getResume(resumeId);
-    if (!r) {
-      navigate({ to: '/' });
-      return;
-    }
-    setResume(r);
+    let cancelled = false;
+    getResume(resumeId).then(r => {
+      if (cancelled) return;
+      if (!r) {
+        navigate({ to: '/' });
+        return;
+      }
+      setResume(r);
+    });
+    return () => { cancelled = true; };
   }, [resumeId]);
 
   function update(patch: Partial<ResumeData>) {
@@ -149,8 +153,8 @@ export function ResumeEditorPage() {
 
           <Button
             size="sm"
-            onClick={() => {
-              saveResume(resume);
+            onClick={async () => {
+              await saveResume(resume);
               window.open(`/resume/${resume.id}/preview`, '_blank');
             }}
           >

@@ -1,26 +1,24 @@
+import { collection, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore';
+import { db, requireUid } from './firebase';
 import { genId } from './resumeStorage';
 import type { ApplicationData, ApplicationStage } from '@/types/application';
 
-const KEY = 'resume-builder-applications';
-
-export function getApplications(): ApplicationData[] {
-  try {
-    return JSON.parse(localStorage.getItem(KEY) ?? '[]') as ApplicationData[];
-  } catch {
-    return [];
-  }
+function applicationsCol(uid: string) {
+  return collection(db, 'users', uid, 'applications');
 }
 
-export function saveApplication(app: ApplicationData): void {
-  const all = getApplications();
-  const idx = all.findIndex(a => a.id === app.id);
-  if (idx >= 0) all[idx] = app;
-  else all.push(app);
-  localStorage.setItem(KEY, JSON.stringify(all));
+export async function getApplications(): Promise<ApplicationData[]> {
+  const snap = await getDocs(applicationsCol(requireUid()));
+  return snap.docs.map(d => d.data() as ApplicationData);
 }
 
-export function deleteApplication(id: string): void {
-  localStorage.setItem(KEY, JSON.stringify(getApplications().filter(a => a.id !== id)));
+export async function saveApplication(app: ApplicationData): Promise<void> {
+  const uid = requireUid();
+  await setDoc(doc(db, 'users', uid, 'applications', app.id), app);
+}
+
+export async function deleteApplication(id: string): Promise<void> {
+  await deleteDoc(doc(db, 'users', requireUid(), 'applications', id));
 }
 
 export function createApplication(title: string, stage: ApplicationStage = 'applied'): ApplicationData {

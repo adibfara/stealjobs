@@ -1,40 +1,40 @@
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+} from 'firebase/firestore';
+import { db, requireUid } from './firebase';
 import type { ResumeData } from '@/types/resume';
-
-const STORAGE_KEY = 'resume-builder-resumes';
 
 export function genId(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-export function getResumes(): ResumeData[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as ResumeData[];
-  } catch {
-    return [];
-  }
+function resumesCol(uid: string) {
+  return collection(db, 'users', uid, 'resumes');
 }
 
-export function getResume(id: string): ResumeData | null {
-  return getResumes().find(r => r.id === id) ?? null;
+export async function getResumes(): Promise<ResumeData[]> {
+  const snap = await getDocs(resumesCol(requireUid()));
+  return snap.docs.map(d => d.data() as ResumeData);
 }
 
-export function saveResume(resume: ResumeData): void {
-  const resumes = getResumes();
-  const idx = resumes.findIndex(r => r.id === resume.id);
+export async function getResume(id: string): Promise<ResumeData | null> {
+  const snap = await getDoc(doc(db, 'users', requireUid(), 'resumes', id));
+  return snap.exists() ? (snap.data() as ResumeData) : null;
+}
+
+export async function saveResume(resume: ResumeData): Promise<void> {
+  const uid = requireUid();
   const updated = { ...resume, lastModified: Date.now() };
-  if (idx >= 0) {
-    resumes[idx] = updated;
-  } else {
-    resumes.push(updated);
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(resumes));
+  await setDoc(doc(db, 'users', uid, 'resumes', resume.id), updated);
 }
 
-export function deleteResume(id: string): void {
-  const resumes = getResumes().filter(r => r.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(resumes));
+export async function deleteResume(id: string): Promise<void> {
+  await deleteDoc(doc(db, 'users', requireUid(), 'resumes', id));
 }
 
 export function createResume(name: string): ResumeData {

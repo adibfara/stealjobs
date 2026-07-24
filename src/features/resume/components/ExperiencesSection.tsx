@@ -592,12 +592,15 @@ export function ExperiencesSection() {
   const [tagsOpen, setTagsOpen] = React.useState(false);
   const [favoriteTags, setFavoriteTags] = React.useState<string[]>([]);
 
-  React.useEffect(() => { setExperiences(getExperiences()); setFavoriteTags(getFavoriteTags()); }, []);
+  React.useEffect(() => {
+    getExperiences().then(setExperiences);
+    getFavoriteTags().then(setFavoriteTags);
+  }, []);
 
-  function refresh() { setExperiences(getExperiences()); }
+  async function refresh() { setExperiences(await getExperiences()); }
 
-  const allTags = getAllTags();
-  const allCompanies = getAllCompanies();
+  const allTags = getAllTags(experiences);
+  const allCompanies = getAllCompanies(experiences);
 
   const filtersApplied = search.trim() !== '' || tagFilters.length > 0 || companyFilter !== '';
 
@@ -618,29 +621,29 @@ export function ExperiencesSection() {
     setCompanyFilter('');
   }
 
-  function handleSaveNew(exp: ExperienceData) {
-    saveExperience(exp);
+  async function handleSaveNew(exp: ExperienceData) {
+    await saveExperience(exp);
     refresh();
     setAddOpen(false);
     setEditExp(exp);
   }
 
-  function handleSaveEdit(exp: ExperienceData) {
-    saveExperience(exp);
+  async function handleSaveEdit(exp: ExperienceData) {
+    await saveExperience(exp);
     refresh();
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!confirm('Delete this experience?')) return;
-    deleteExperience(id);
+    await deleteExperience(id);
     refresh();
   }
 
-  function handleImport(imported: ExperienceData[], importedFavoriteTags?: string[]) {
-    imported.forEach(e => saveExperience(e));
+  async function handleImport(imported: ExperienceData[], importedFavoriteTags?: string[]) {
+    await Promise.all(imported.map(e => saveExperience(e)));
     if (importedFavoriteTags) {
       const next = Array.from(new Set([...favoriteTags, ...importedFavoriteTags]));
-      saveFavoriteTags(next);
+      await saveFavoriteTags(next);
       setFavoriteTags(next);
     }
     refresh();
@@ -648,7 +651,7 @@ export function ExperiencesSection() {
   }
 
   function handleExport() {
-    exportExperiencesAsJson(experiences);
+    exportExperiencesAsJson(experiences, favoriteTags);
   }
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -661,7 +664,7 @@ export function ExperiencesSection() {
       const to = ids.indexOf(over.id as string);
       const reordered = arrayMove(experiences, from, to);
       setExperiences(reordered);
-      saveExperienceOrder(reordered);
+      void saveExperienceOrder(reordered);
     }
   }
 
@@ -809,7 +812,7 @@ export function ExperiencesSection() {
         favoriteTags={favoriteTags}
         onToggle={t => {
           const next = favoriteTags.includes(t) ? favoriteTags.filter(x => x !== t) : [...favoriteTags, t];
-          saveFavoriteTags(next);
+          void saveFavoriteTags(next);
           setFavoriteTags(next);
         }}
       />
