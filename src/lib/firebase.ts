@@ -6,13 +6,15 @@ import {
   persistentMultipleTabManager,
 } from 'firebase/firestore';
 
+// Firebase web config is a public client identifier — safe to commit.
+// Data access is enforced by Firestore security rules, not by hiding these.
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: 'AIzaSyAjAroHAoujWwmCJLeVODwS6YX3dGxX0nk',
+  authDomain: 'stealjobsx.firebaseapp.com',
+  projectId: 'stealjobsx',
+  storageBucket: 'stealjobsx.firebasestorage.app',
+  messagingSenderId: '793309586364',
+  appId: '1:793309586364:web:2eda8c065bbab3fac941b9',
 };
 
 export const app = initializeApp(firebaseConfig);

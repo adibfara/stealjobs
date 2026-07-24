@@ -23,9 +23,9 @@ export function SignInScreen() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">Resume Builder</h1>
+        <h1 className="text-2xl font-semibold">Steal Jobs</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Sign in to sync your resumes across devices.
+          Build resumes, cover letters and experiences, perfected for your next job
         </p>
       </div>
       <Button onClick={handleSignIn} disabled={busy} size="lg">

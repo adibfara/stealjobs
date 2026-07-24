@@ -15,7 +15,20 @@ No test suite exists.
 
 ## Architecture
 
-React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui. All resume data lives in `localStorage` via `src/lib/resumeStorage.ts` — there is no backend.
+React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui. Data lives in **Firebase Firestore**, scoped per signed-in user (Google auth).
+
+**Backend / persistence** (`src/lib/firebase.ts`):
+- Firebase config is hardcoded in `firebase.ts` (web config is a public client identifier; access is enforced by Firestore security rules, not secrecy). No `.env` files.
+- Firestore with offline persistence (`persistentLocalCache`). `requireUid()` returns the current user's uid or throws.
+- Firestore layout: `users/{uid}/resumes/{id}`, `users/{uid}/experiences/{id}`, `users/{uid}/applications/{id}`, `users/{uid}/settings/prefs` (`{ favoriteTags, migrated }`).
+- Storage modules (`resumeStorage.ts`, `experienceStorage.ts`, `applicationStorage.ts`) are **async** (return Promises) — `get*/save*/delete*` do Firestore CRUD. Pure factories (`genId`, `createResume`, `createCoverLetter`, `createExperience`, `createApplication`) stay sync. `getAllTags(list)`/`getAllCompanies(list)` are pure derivations over an already-loaded list, not storage reads.
+- Components own local state and `await` the async storage calls (no react-query for storage, though `QueryClientProvider` is wired). Editor autosave debounce is 800ms.
+
+**Auth** (`src/shared/auth/`): `AuthProvider` + `useAuth` (Google `signInWithPopup`), `SignInScreen`, `AuthGate`. `AuthGate` in `main.tsx` wraps the router — shows a spinner while loading, `SignInScreen` when signed-out, children when signed-in. On first sign-in it runs `migrateLocalToFirestore.ts` once (guarded by `settings/prefs.migrated`), batch-pushing any legacy `localStorage` data up; localStorage is left intact as a fallback.
+
+**Legacy note**: `appBackup.ts` and its "Export/Import all data" buttons in `ResumesPage` still operate on `localStorage`, now disconnected from Firestore — effectively dead until repointed.
+
+**Deploy (Netlify)**: `netlify.toml` sets `npm run build` → `dist` with an SPA `/* → /index.html` redirect. New live domains must be added under Firebase → Authentication → Settings → Authorized domains for Google sign-in to work.
 
 **Routes** (`src/router.tsx`):
 - `/` — `ResumesPage` (list/create/delete resumes)
@@ -33,7 +46,7 @@ ResumeData
       type: 1 | 2 | 3         (controls template rendering layout)
 ```
 
-Every entity has a string `id` from `genId()` in `resumeStorage.ts`. Fields that can carry a hyperlink come in pairs: `title` + `titleLink`, `subtitle` + `subtitleLink`, etc.
+Every entity has a string `id` from `genId()` in `resumeStorage.ts` (also used as the Firestore doc id). Fields that can carry a hyperlink come in pairs: `title` + `titleLink`, `subtitle` + `subtitleLink`, etc.
 
 **Editor** (`src/features/resume/components/editor/`):
 - `ResumeEditorPage` — top-level, owns `ResumeData` state, debounced autosave
