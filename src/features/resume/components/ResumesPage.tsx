@@ -425,7 +425,7 @@ export function ResumesPage() {
     const name = newName.trim() || (isCover ? 'Untitled Cover Letter' : 'Untitled Resume');
     const r = isCover ? createCoverLetter(name) : createResume(name);
     await saveResume(r);
-    navigate({ to: '/resume/$resumeId', params: { resumeId: r.id }ut });
+    navigate({ to: '/resume/$resumeId', params: { resumeId: r.id } });
   }
 
   async function handleDelete(id: string, e: React.MouseEvent, label = 'resume') {
