@@ -36,7 +36,7 @@ const routeTree = rootRoute.addChildren([
   resumePreviewRoute,
 ]);
 
-export const router = createRouter({ routeTree });
+export const router = createRouter({ routeTree, basepath: '/stealjobs/' });
 
 declare module '@tanstack/react-router' {
   interface Register {
