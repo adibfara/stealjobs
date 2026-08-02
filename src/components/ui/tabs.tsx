@@ -76,12 +76,19 @@ function TabsTrigger({
 
 function TabsContent({
   className,
+  forceMount = true,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Content>) {
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn("flex-1 text-sm outline-none", className)}
+      // Stay mounted across tab switches so each panel keeps its loaded state
+      // (no empty-then-refill flash). Inactive panels are removed from layout.
+      forceMount={forceMount}
+      className={cn(
+        "flex-1 text-sm outline-none data-[state=inactive]:hidden",
+        className
+      )}
       {...props}
     />
   )

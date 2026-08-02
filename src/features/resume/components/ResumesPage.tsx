@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Plus, FileText, Download, Upload, Trash2, Clock, ChevronRight, Copy, Mail, DatabaseBackup, HardDriveDownload } from 'lucide-react';
+import { Plus, FileText, Download, Upload, Trash2, Clock, ChevronRight, Copy, Mail, DatabaseBackup, HardDriveDownload, Sparkles, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,6 +29,188 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
+
+const AI_IMPORT_DOC = `# Full Data Import Format (adib-resume-builder)
+
+"Import all data" restores a complete backup: every resume, cover letter,
+experience, application, favorite tag, and the theme. Restoring REPLACES all
+current data. Save the JSON as a .json file (or paste it) in the Import all data
+dialog.
+
+## Top-level envelope (AppBackup)
+- app         string   — must be exactly "adib-resume-builder".
+- version     number   — must be 1.
+- exportedAt  number   — epoch ms (informational; use current time).
+- data        object   — map of storage-key -> STRINGIFIED JSON value.
+
+IMPORTANT: every VALUE inside "data" is a JSON string, not a nested object.
+i.e. the arrays below are JSON.stringify'd before being placed in "data".
+
+## data keys
+- "resume-builder-resumes"        string — JSON.stringify of ResumeData[] (resumes + cover letters).
+- "resume-builder-experiences"    string — JSON.stringify of ExperienceData[].
+- "resume-builder-applications"   string — JSON.stringify of ApplicationData[].
+- "resume-builder-favorite-tags"  string — JSON.stringify of string[] (favorited tag names).
+- "project-ui-theme"              string — "light" | "dark" | "system". Optional.
+
+All data keys are optional; include only what you want to restore.
+
+## ResumeData (one resume or cover letter)
+- id, name        string   — id is any unique slug; name shows in the dashboard.
+- type            string   — "resume" | "coverletter". Optional, defaults to resume.
+- title, subtitle string   — headline / secondary line. Optional.
+- (each of title/subtitle may have a matching titleLink/subtitleLink string.)
+- photo           string   — optional image URL.
+- contacts        Contact[]  — { id, icon, text, link? }. icon is one of:
+                  Mail, Phone, Globe, Linkedin, Github, MapPin, Twitter, Link,
+                  Youtube, Instagram, Facebook, Briefcase, Calendar, ExternalLink,
+                  User, Building2, Rss, Award, Laptop, BookOpen, FileText, AtSign.
+- sections        Section[]  — { id, title?, titleLink?, subsections: SubSection[] }.
+- selectedTemplate string — "classic" | "modern" | "modernrow" | "professional".
+- lastModified, createdAt number — epoch ms.
+
+SubSection: { id, title?, subtitle?, date? (+ *Link variants), text?,
+  bullets: Bullet[], tags: Tag[], type: 1|2|3, tagsPosition?, tagsHidden? }
+  type: 1 = title + subtitle + date row, 2 = no subtitle, 3 = template variation.
+Bullet: { id, text, link? }.   Tag: { id, text }.
+
+## ExperienceData (reusable experience bank)
+- id, title, company   string
+- tags                 string[]
+- context, goal, action, result, learning  string[] (STAR-style bullet lists)
+- description          string
+- order                number  — sort order
+- createdAt, lastModified number — epoch ms
+
+## ApplicationData (job application tracker)
+- id, title            string
+- stage                "applied" | "in_progress" | "offer" | "rejected"
+- appliedAt, lastModified number — epoch ms
+- link, description     string   — optional
+- resumeId, coverLetterId string — optional; reference a ResumeData.id
+- salary               number    — optional
+- country              "Netherlands" | "Germany" | "UAE" — optional
+- timeline             { stage, at }[]  — stage change history (at = epoch ms)
+
+## Notes
+- Every entity needs a unique "id" string. Random short strings are fine.
+- Remember to JSON.stringify each value under "data" — the values are strings.
+
+## Minimal example
+{
+  "app": "adib-resume-builder",
+  "version": 1,
+  "exportedAt": 0,
+  "data": {
+    "resume-builder-resumes": "[{\\"id\\":\\"r1\\",\\"name\\":\\"Jane Doe\\",\\"type\\":\\"resume\\",\\"title\\":\\"Senior Frontend Engineer\\",\\"contacts\\":[{\\"id\\":\\"c1\\",\\"icon\\":\\"Mail\\",\\"text\\":\\"jane@example.com\\",\\"link\\":\\"mailto:jane@example.com\\"}],\\"sections\\":[{\\"id\\":\\"s1\\",\\"title\\":\\"Experience\\",\\"subsections\\":[{\\"id\\":\\"ss1\\",\\"title\\":\\"Senior Frontend Engineer\\",\\"subtitle\\":\\"Acme Corp\\",\\"date\\":\\"2021 – Present\\",\\"type\\":1,\\"bullets\\":[{\\"id\\":\\"b1\\",\\"text\\":\\"Led migration to React 19.\\"}],\\"tags\\":[{\\"id\\":\\"t1\\",\\"text\\":\\"React\\"}]}]}],\\"selectedTemplate\\":\\"classic\\",\\"lastModified\\":0,\\"createdAt\\":0}]",
+    "resume-builder-applications": "[{\\"id\\":\\"a1\\",\\"title\\":\\"Frontend @ Acme\\",\\"stage\\":\\"applied\\",\\"appliedAt\\":0,\\"lastModified\\":0,\\"resumeId\\":\\"r1\\",\\"timeline\\":[{\\"stage\\":\\"applied\\",\\"at\\":0}]}]",
+    "resume-builder-favorite-tags": "[\\"React\\",\\"TypeScript\\"]"
+  }
+}`;
+
+const AI_RESUME_IMPORT_DOC = `# Resume Import Format (adib-resume-builder)
+
+"Import" expects a single JSON object describing ONE document (a resume or cover
+letter). Save it as a .json file and use the Import action to load it. The root
+IS the ResumeData object — do NOT wrap it in an array or envelope.
+
+## Top-level object (ResumeData)
+- id            string   — unique id. Any non-empty string; use a random slug.
+- name          string   — internal document name shown in the dashboard.
+- type          string   — "resume" or "coverletter". Optional, defaults to resume.
+- title         string   — headline under the name (e.g. "Senior Frontend Engineer"). Optional.
+- titleLink     string   — optional hyperlink for the title.
+- subtitle      string   — secondary line (e.g. location / tagline). Optional.
+- subtitleLink  string   — optional hyperlink for the subtitle.
+- photo         string   — optional image URL.
+- contacts      Contact[] — contact rows (email, phone, links).
+- sections      Section[] — the body of the document.
+- selectedTemplate string — one of: "classic", "modern", "modernrow", "professional". Default "classic".
+- lastModified  number   — epoch ms. Use current time.
+- createdAt     number   — epoch ms. Use current time.
+
+## Contact
+- id    string
+- icon  string  — one of: Mail, Phone, Globe, Linkedin, Github, MapPin, Twitter,
+                  Link, Youtube, Instagram, Facebook, Briefcase, Calendar,
+                  ExternalLink, User, Building2, Rss, Award, Laptop, BookOpen,
+                  FileText, AtSign.
+- text  string  — displayed text (e.g. "you@email.com").
+- link  string  — optional hyperlink (e.g. "mailto:you@email.com").
+
+## Section
+- id          string
+- title       string     — section heading (e.g. "Experience", "Education"). Optional.
+- titleLink   string     — optional hyperlink for the heading.
+- subsections SubSection[] — entries inside the section.
+
+## SubSection (one entry, e.g. one job or one degree)
+- id           string
+- title        string    — main line (e.g. job title or school). Optional.
+- titleLink    string    — optional hyperlink.
+- subtitle     string    — company / secondary line. Optional.
+- subtitleLink string    — optional hyperlink.
+- date         string    — free-text date range (e.g. "2021 – Present"). Optional.
+- dateLink     string    — optional hyperlink.
+- text         string    — paragraph body (used for cover letters / summaries). Optional.
+- bullets      Bullet[]  — bullet points.
+- tags         Tag[]     — short chips (e.g. skills used).
+- type         number    — layout: 1 = title + subtitle + date row,
+                           2 = no subtitle, 3 = template-specific variation.
+- tagsPosition string    — "top" or "bottom". Optional.
+- tagsHidden   boolean   — hide tags for this entry. Optional.
+
+## Bullet
+- id    string
+- text  string  — the bullet content.
+- link  string  — optional hyperlink.
+
+## Tag
+- id    string
+- text  string  — the chip label.
+
+## Notes
+- Every entity needs a unique "id" string. Random short strings are fine.
+- Only "id" fields and the arrays (contacts, sections, subsections, bullets,
+  tags) are structurally required; all other fields are optional.
+
+## Minimal example
+{
+  "id": "abc123",
+  "name": "Jane Doe — Frontend",
+  "type": "resume",
+  "title": "Senior Frontend Engineer",
+  "subtitle": "Berlin, Germany",
+  "contacts": [
+    { "id": "c1", "icon": "Mail", "text": "jane@example.com", "link": "mailto:jane@example.com" },
+    { "id": "c2", "icon": "Github", "text": "github.com/jane", "link": "https://github.com/jane" }
+  ],
+  "sections": [
+    {
+      "id": "s1",
+      "title": "Experience",
+      "subsections": [
+        {
+          "id": "ss1",
+          "title": "Senior Frontend Engineer",
+          "subtitle": "Acme Corp",
+          "date": "2021 – Present",
+          "type": 1,
+          "bullets": [
+            { "id": "b1", "text": "Led migration to React 19, cutting bundle size 30%." }
+          ],
+          "tags": [
+            { "id": "t1", "text": "React" },
+            { "id": "t2", "text": "TypeScript" }
+          ]
+        }
+      ]
+    }
+  ],
+  "selectedTemplate": "classic",
+  "lastModified": 0,
+  "createdAt": 0
+}`;
 
 interface DocCardProps {
   r: ResumeData;
@@ -202,7 +384,31 @@ export function ResumesPage() {
   const [backupRaw, setBackupRaw] = React.useState('');
   const [backupError, setBackupError] = React.useState('');
   const [exportedNote, setExportedNote] = React.useState('');
+  const [aiImportOpen, setAiImportOpen] = React.useState(false);
+  const [aiResumeImportOpen, setAiResumeImportOpen] = React.useState(false);
+  const [docCopied, setDocCopied] = React.useState(false);
+  const [resumeDocCopied, setResumeDocCopied] = React.useState(false);
   const backupFileRef = React.useRef<HTMLInputElement>(null);
+
+  async function handleCopyDoc() {
+    try {
+      await navigator.clipboard.writeText(AI_IMPORT_DOC);
+      setDocCopied(true);
+      setTimeout(() => setDocCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable */
+    }
+  }
+
+  async function handleCopyResumeDoc() {
+    try {
+      await navigator.clipboard.writeText(AI_RESUME_IMPORT_DOC);
+      setResumeDocCopied(true);
+      setTimeout(() => setResumeDocCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable */
+    }
+  }
 
   async function refresh() {
     const list = await getResumes();
@@ -219,7 +425,7 @@ export function ResumesPage() {
     const name = newName.trim() || (isCover ? 'Untitled Cover Letter' : 'Untitled Resume');
     const r = isCover ? createCoverLetter(name) : createResume(name);
     await saveResume(r);
-    navigate({ to: '/resume/$resumeId', params: { resumeId: r.id } });
+    navigate({ to: '/resume/$resumeId', params: { resumeId: r.id }ut });
   }
 
   async function handleDelete(id: string, e: React.MouseEvent, label = 'resume') {
@@ -341,9 +547,15 @@ export function ResumesPage() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuItem onClick={() => importRef.current?.click()}>
-                    <Upload className="mr-1.5 h-4 w-4" /> Import
+                    <Upload className="mr-1.5 h-4 w-4" /> Import applications
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setResumeDocCopied(false); setAiResumeImportOpen(true); }}>
+                    <Sparkles className="mr-1.5 h-4 w-4" /> AI Resume Import
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setDocCopied(false); setAiImportOpen(true); }}>
+                    <Sparkles className="mr-1.5 h-4 w-4" /> AI Import (all data)
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => { setCreating('coverletter'); setNewName(''); }}>
                     <Plus className="mr-1.5 h-4 w-4" /> Cover Letter
@@ -352,10 +564,10 @@ export function ResumesPage() {
                     <Plus className="mr-1.5 h-4 w-4" /> Resume
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleExportAll}>
-                    <HardDriveDownload className="mr-1.5 h-4 w-4" /> Export all data
+                    <HardDriveDownload className="mr-1.5 h-4 w-4" /> Export all
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => { setBackupRaw(''); setBackupError(''); setBackupImportOpen(true); }}>
-                    <DatabaseBackup className="mr-1.5 h-4 w-4" /> Import all data
+                    <DatabaseBackup className="mr-1.5 h-4 w-4" /> Import all
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -434,6 +646,72 @@ export function ResumesPage() {
         className="hidden"
         onChange={handleBackupFile}
       />
+
+      <Dialog open={aiResumeImportOpen} onOpenChange={setAiResumeImportOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" /> AI Resume Import
+            </DialogTitle>
+            <DialogDescription>
+              Hand this spec to any AI (ChatGPT, Claude, …) and ask it to produce a
+              single resume JSON. Save the result as a <code>.json</code> file, then use
+              <strong> Import</strong> to load it. Copy the document below to get started.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute right-2 top-2 z-10"
+              onClick={handleCopyResumeDoc}
+            >
+              {resumeDocCopied
+                ? <><Check className="mr-1.5 h-3.5 w-3.5" /> Copied</>
+                : <><Copy className="mr-1.5 h-3.5 w-3.5" /> Copy</>}
+            </Button>
+            <pre className="max-h-[55vh] overflow-auto rounded-md border border-input bg-muted/50 p-4 pt-12 font-mono text-xs whitespace-pre-wrap">
+              {AI_RESUME_IMPORT_DOC}
+            </pre>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAiResumeImportOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={aiImportOpen} onOpenChange={setAiImportOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" /> AI Import
+            </DialogTitle>
+            <DialogDescription>
+              Hand this spec to any AI (ChatGPT, Claude, …) and ask it to produce a
+              full-backup JSON. Save the result as a <code>.json</code> file (or paste it),
+              then use <strong>Import all data</strong> to load it. Copy the document below to get started.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute right-2 top-2 z-10"
+              onClick={handleCopyDoc}
+            >
+              {docCopied
+                ? <><Check className="mr-1.5 h-3.5 w-3.5" /> Copied</>
+                : <><Copy className="mr-1.5 h-3.5 w-3.5" /> Copy</>}
+            </Button>
+            <pre className="max-h-[55vh] overflow-auto rounded-md border border-input bg-muted/50 p-4 pt-12 font-mono text-xs whitespace-pre-wrap">
+              {AI_IMPORT_DOC}
+            </pre>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAiImportOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={backupImportOpen} onOpenChange={open => { if (!open) setBackupImportOpen(false); }}>
         <DialogContent className="max-w-lg">
