@@ -1,4 +1,4 @@
-export type ApplicationStage = 'applied' | 'in_progress' | 'offer' | 'rejected';
+export type ApplicationStage = 'applied' | 'in_progress' | 'offer' | 'accepted' | 'rejected';
 
 export interface StageChange {
   stage: ApplicationStage;

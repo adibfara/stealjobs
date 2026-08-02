@@ -14,7 +14,7 @@ import type { ResumeData } from '@/types/resume';
 
 // ── constants ────────────────────────────────────────────────────────────────
 
-const STAGE_ORDER: ApplicationStage[] = ['offer', 'in_progress', 'applied', 'rejected'];
+const STAGE_ORDER: ApplicationStage[] = ['accepted', 'offer', 'in_progress', 'applied', 'rejected'];
 
 const COUNTRIES: ApplicationCountry[] = ['Netherlands', 'Germany', 'UAE'];
 const COUNTRY_FLAG: Record<ApplicationCountry, string> = { Netherlands: '🇳🇱', Germany: '🇩🇪', UAE: '🇦🇪' };
@@ -23,10 +23,12 @@ const STAGE_LABEL: Record<ApplicationStage, string> = {
   offer: 'Offer',
   in_progress: 'In Progress',
   applied: 'Applied',
+  accepted: 'Accepted',
   rejected: 'Rejected',
 };
 
 const STAGE_COLORS: Record<ApplicationStage, { bg: string; text: string; bar: string }> = {
+  accepted:    { bg: 'bg-green-100 dark:bg-green-900/40',     text: 'text-green-700 dark:text-green-300',     bar: '#22c55e' },
   offer:       { bg: 'bg-emerald-100 dark:bg-emerald-900/40', text: 'text-emerald-700 dark:text-emerald-300', bar: '#10b981' },
   in_progress: { bg: 'bg-sky-100 dark:bg-sky-900/40',         text: 'text-sky-700 dark:text-sky-300',         bar: '#0ea5e9' },
   applied:     { bg: 'bg-amber-100 dark:bg-amber-900/40',     text: 'text-amber-700 dark:text-amber-300',     bar: '#f59e0b' },
@@ -87,7 +89,8 @@ function MiniChart({ apps }: { apps: ApplicationData[] }) {
 
 const QUICK_ACTIONS: Partial<Record<ApplicationStage, ApplicationStage[]>> = {
   applied:     ['in_progress', 'rejected'],
-  in_progress: ['rejected'],
+  in_progress: ['offer', 'rejected'],
+  offer:       ['accepted', 'rejected'],
 };
 
 function ApplicationCard({
@@ -446,7 +449,7 @@ function ImportDialog({
     try {
       const parsed = JSON.parse(raw) as (ApplicationImport & Partial<ApplicationData>)[];
       if (!Array.isArray(parsed)) throw new Error('Expected a JSON array');
-      const VALID_STAGES = new Set<string>(['applied', 'in_progress', 'offer', 'rejected']);
+      const VALID_STAGES = new Set<string>(['applied', 'in_progress', 'offer', 'accepted', 'rejected']);
       const apps: ApplicationData[] = parsed.map(item => {
         if (!item.title) throw new Error('Each item must have a "title" field');
         const stage: ApplicationStage = VALID_STAGES.has(item.status ?? item.stage ?? '')
