@@ -154,8 +154,9 @@ export function ResumeEditorPage() {
           <Button
             size="sm"
             onClick={async () => {
+              const win = window.open('', '_blank');
               await saveResume(resume);
-              window.open(`/resume/${resume.id}/preview`, '_blank');
+              if (win) win.location.href = `/stealjobs/resume/${resume.id}/preview`;
             }}
           >
             <Eye className="mr-1.5 h-4 w-4" /> Preview
