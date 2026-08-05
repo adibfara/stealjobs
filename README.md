@@ -71,8 +71,3 @@ npm run build
 # Run linting
 npm run lint
 ```
-
-## Features
-
-### Counter
-A simple counter with increment/decrement buttons demonstrating the feature architecture.
