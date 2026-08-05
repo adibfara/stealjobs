@@ -69,7 +69,7 @@ export function ThemeEditorPage() {
         loaded = modernRowTheme;
         setIsCustom(false);
       } else {
-        navigate({ to: '/themes' });
+        navigate({ to: '/', search: { tab: 'themes' } });
         return;
       }
       if (loaded.paletteId) {
@@ -137,7 +137,7 @@ export function ThemeEditorPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="sticky top-0 z-20 flex items-center gap-2 border-b border-border bg-card/90 px-4 py-2.5 backdrop-blur-sm">
-        <Button variant="ghost" size="sm" onClick={() => navigate({ to: '/themes' })}>
+        <Button variant="ghost" size="sm" onClick={() => navigate({ to: '/', search: { tab: 'themes' } })}>
           <ArrowLeft className="mr-1.5 h-4 w-4" /> Themes
         </Button>
 

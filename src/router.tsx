@@ -17,6 +17,9 @@ const rootRoute = createRootRoute({
 const resumesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+    tab: typeof search.tab === 'string' ? search.tab : undefined,
+  }),
   component: ResumesPage,
 });
 

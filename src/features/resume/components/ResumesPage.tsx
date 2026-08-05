@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Plus, FileText, Download, Upload, Trash2, Clock, ChevronRight, Copy, Mail, DatabaseBackup, HardDriveDownload, Sparkles, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -373,6 +373,7 @@ function formatDate(ts: number) {
 
 export function ResumesPage() {
   const navigate = useNavigate();
+  const { tab } = useSearch({ from: '/' });
   const [resumes, setResumes] = React.useState<ResumeData[]>([]);
   const [creating, setCreating] = React.useState<'resume' | 'coverletter' | null>(null);
   const [newName, setNewName] = React.useState('');
@@ -518,7 +519,7 @@ export function ResumesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Tabs defaultValue="applications">
+      <Tabs defaultValue={tab === 'themes' ? 'themes' : 'applications'}>
         {/* Top bar */}
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
           <div className="mx-auto grid max-w-5xl grid-cols-3 items-center px-6 py-4">
