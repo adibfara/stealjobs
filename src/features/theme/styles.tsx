@@ -53,7 +53,11 @@ function StyleSetRow({ styleSet, active, selected, onSelect, onApply, onDuplicat
       onClick={onSelect}
     >
       <span className="flex-1 truncate">{styleSet.name}</span>
-      {active && <Check className="h-3.5 w-3.5 text-primary shrink-0" title="Applied to this theme" />}
+      {active && (
+        <span className="shrink-0" title="Applied to this theme">
+          <Check className="h-3.5 w-3.5 text-primary" />
+        </span>
+      )}
       {!active && onApply && (
         <button type="button" onClick={e => { e.stopPropagation(); onApply(); }} className="shrink-0 text-[10px] text-primary hover:underline">
           Apply
