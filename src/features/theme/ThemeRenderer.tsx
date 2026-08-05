@@ -41,7 +41,7 @@ function renderNode(node: ThemeNode, scope: Scope, theme: ThemeData): React.Reac
 }
 
 function renderNodeBody(node: ThemeNode, scope: Scope, theme: ThemeData): React.ReactNode {
-  const css = nodeStyleToCss(node.style, theme.palette, node.kind);
+  const css = nodeStyleToCss(node.style, theme.palette, node.kind, theme.styleSet);
 
   if (node.kind === 'row' || node.kind === 'column' || node.kind === 'box') {
     return (

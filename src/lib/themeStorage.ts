@@ -15,7 +15,7 @@ function themesCol(uid: string) {
   return collection(db, 'users', uid, 'themes');
 }
 
-function stripUndefined<T>(obj: T): T {
+export function stripUndefined<T>(obj: T): T {
   if (Array.isArray(obj)) return obj.map(stripUndefined) as unknown as T;
   if (obj && typeof obj === 'object') {
     const out: Record<string, unknown> = {};

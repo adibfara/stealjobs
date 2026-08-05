@@ -1,14 +1,17 @@
 import * as React from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeft, Check, Eye, Pencil, X } from 'lucide-react';
+import { ArrowLeft, Check, Eye, Pencil, Type as TypeIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getResumes } from '@/lib/resumeStorage';
 import { getTheme, getThemes, saveTheme, createTheme } from '@/lib/themeStorage';
 import { getPalettes, resolvePalette } from '@/lib/paletteStorage';
+import { getStyleSets, resolveStyleSet } from '@/lib/styleStorage';
+import { defaultStyleSet } from './builtinStyles';
 import { modernRowTheme } from './builtinThemes';
 import { PalettePopover } from './palettes';
+import { StyleDialog } from './styles';
 import { ThemeRenderer } from './ThemeRenderer';
 import { ThemeCanvas, ThemeToolbar, DeleteSelectedButton } from './ThemeEditorCanvas';
 import { ThemeInspector } from './ThemeInspector';
@@ -41,6 +44,8 @@ export function ThemeEditorPage() {
   const [saved, setSaved] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [showLockDialog, setShowLockDialog] = React.useState(false);
+  const [styleDialogOpen, setStyleDialogOpen] = React.useState(false);
+  const [focusEntryId, setFocusEntryId] = React.useState<string | null>(null);
 
   useDebouncedSave(theme, isCustom);
 
@@ -72,6 +77,15 @@ export function ThemeEditorPage() {
         if (cancelled) return;
         const linked = resolvePalette(loaded.paletteId, palettes);
         if (linked) loaded = { ...loaded, palette: linked.colors };
+      }
+      if (loaded.styleSetId) {
+        const styleSets = await getStyleSets();
+        if (cancelled) return;
+        const linked = resolveStyleSet(loaded.styleSetId, styleSets);
+        if (linked) loaded = { ...loaded, styleSet: linked.entries };
+      }
+      if (!loaded.styleSet) {
+        loaded = { ...loaded, styleSet: defaultStyleSet.entries, styleSetId: loaded.styleSetId ?? defaultStyleSet.id };
       }
       setTheme(loaded);
       const customThemes = await getThemes();
@@ -187,6 +201,10 @@ export function ThemeEditorPage() {
 
         <PalettePopover theme={theme} onChange={setTheme} />
 
+        <Button variant="outline" size="sm" onClick={() => { setFocusEntryId(null); setStyleDialogOpen(true); }}>
+          <TypeIcon className="mr-1.5 h-4 w-4" /> Styles
+        </Button>
+
         {isCustom && saved && <span className="text-xs text-muted-foreground">Saved</span>}
 
         {resumes.length > 0 && (
@@ -223,7 +241,13 @@ export function ThemeEditorPage() {
                     onDelete={() => { if (selectedId) { updateRoot(removeNode(theme.root, selectedId)); setSelectedId(null); } }}
                   />
                 </div>
-                <ThemeInspector theme={theme} selectedId={selectedId} onChange={updateRoot} onSelect={id => setSelectedId(id)} />
+                <ThemeInspector
+                  theme={theme}
+                  selectedId={selectedId}
+                  onChange={updateRoot}
+                  onSelect={id => setSelectedId(id)}
+                  onEditStyle={entryId => { setFocusEntryId(entryId); setStyleDialogOpen(true); }}
+                />
               </div>
             }
           />
@@ -252,6 +276,8 @@ export function ThemeEditorPage() {
           )}
         </div>
       </div>
+
+      <StyleDialog theme={theme} onChange={setTheme} open={styleDialogOpen} onOpenChange={setStyleDialogOpen} focusEntryId={focusEntryId} />
 
       <Dialog open={showLockDialog} onOpenChange={setShowLockDialog}>
         <DialogContent>

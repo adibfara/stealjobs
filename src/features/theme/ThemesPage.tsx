@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Plus, Copy, Trash2, Download, Upload, ChevronRight, Palette as PaletteIcon, Lock } from 'lucide-react';
+import { Plus, Copy, Trash2, Download, Upload, ChevronRight, Palette as PaletteIcon, Type as TypeIcon, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   getThemes,
@@ -12,6 +12,7 @@ import {
 } from '@/lib/themeStorage';
 import { modernRowTheme } from './builtinThemes';
 import { PaletteLibraryDialog } from './palettes';
+import { StyleLibraryDialog } from './styles';
 import type { ThemeData } from '@/types/theme';
 
 interface ThemeCardProps {
@@ -68,6 +69,7 @@ export function ThemesPage() {
   const navigate = useNavigate();
   const [themes, setThemes] = React.useState<ThemeData[]>([]);
   const [paletteLibraryOpen, setPaletteLibraryOpen] = React.useState(false);
+  const [styleLibraryOpen, setStyleLibraryOpen] = React.useState(false);
   const importRef = React.useRef<HTMLInputElement>(null);
 
   async function refresh() {
@@ -127,6 +129,9 @@ export function ThemesPage() {
           <Button variant="outline" size="sm" onClick={() => setPaletteLibraryOpen(true)}>
             <PaletteIcon className="mr-1.5 h-4 w-4" /> Palettes
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setStyleLibraryOpen(true)}>
+            <TypeIcon className="mr-1.5 h-4 w-4" /> Styles
+          </Button>
           <Button variant="outline" size="sm" onClick={() => importRef.current?.click()}>
             <Upload className="mr-1.5 h-4 w-4" /> Import
           </Button>
@@ -136,6 +141,7 @@ export function ThemesPage() {
         </div>
       </div>
       <PaletteLibraryDialog open={paletteLibraryOpen} onOpenChange={setPaletteLibraryOpen} />
+      <StyleLibraryDialog open={styleLibraryOpen} onOpenChange={setStyleLibraryOpen} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {allThemes.map(t => (
           <ThemeCard

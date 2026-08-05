@@ -9,7 +9,7 @@ import {
 import { db, requireUid } from './firebase';
 import { genId } from './resumeStorage';
 import type { NamedPalette, Palette } from '@/types/theme';
-import { defaultPalette, builtinPalettes } from '@/features/theme/builtinPalettes';
+import { builtinPalettes } from '@/features/theme/builtinPalettes';
 
 function palettesCol(uid: string) {
   return collection(db, 'users', uid, 'palettes');

@@ -108,7 +108,7 @@ function EditorNode({ node, scope, theme, selectedId, onSelect, hoveredId, onHov
     if (collection.length > 0) effectiveScope = extendScope(scope, node.repeat, collection[0]);
   }
 
-  const css = nodeStyleToCss(node.style, theme.palette, node.kind);
+  const css = nodeStyleToCss(node.style, theme.palette, node.kind, theme.styleSet);
   const isSelected = selectedId === node.id;
   const isHovered = hoveredId === node.id;
   const isContainer = node.kind === 'row' || node.kind === 'column' || node.kind === 'box';

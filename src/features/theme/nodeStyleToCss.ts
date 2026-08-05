@@ -1,6 +1,13 @@
 import type * as React from 'react';
-import type { ColorRef, NodeStyle, Palette } from '@/types/theme';
+import type { ColorRef, NodeStyle, Palette, StyleEntry } from '@/types/theme';
 import { FONT_FAMILIES } from './fonts';
+
+export function resolveTypography(style: NodeStyle, styleSet?: StyleEntry[]): NodeStyle {
+  if (!style.styleRef || !styleSet) return style;
+  const entry = styleSet.find(e => e.id === style.styleRef);
+  if (!entry) return style;
+  return { ...style, ...entry.typography };
+}
 
 export function resolveColor(ref: ColorRef | undefined, palette: Palette): string | undefined {
   if (!ref) return undefined;
@@ -21,8 +28,9 @@ export function imageDimensionStyle(style: NodeStyle): React.CSSProperties {
   };
 }
 
-export function nodeStyleToCss(style: NodeStyle, palette: Palette, kind: string): React.CSSProperties {
+export function nodeStyleToCss(style: NodeStyle, palette: Palette, kind: string, styleSet?: StyleEntry[]): React.CSSProperties {
   const css: React.CSSProperties = {};
+  const typography = resolveTypography(style, styleSet);
 
   const isContainer = kind === 'row' || kind === 'column' || kind === 'box';
   if (isContainer) {
@@ -40,19 +48,19 @@ export function nodeStyleToCss(style: NodeStyle, palette: Palette, kind: string)
   if (style.padding) css.padding = style.padding.map(pt).join(' ');
   if (style.margin) css.margin = style.margin.map(pt).join(' ');
 
-  if (style.fontFamily) css.fontFamily = FONT_FAMILIES[style.fontFamily];
-  if (style.fontSize !== undefined) css.fontSize = pt(style.fontSize);
-  if (style.fontWeight) css.fontWeight = style.fontWeight;
-  if (style.italic) css.fontStyle = 'italic';
-  if (style.color) css.color = resolveColor(style.color, palette);
+  if (typography.fontFamily) css.fontFamily = FONT_FAMILIES[typography.fontFamily];
+  if (typography.fontSize !== undefined) css.fontSize = pt(typography.fontSize);
+  if (typography.fontWeight) css.fontWeight = typography.fontWeight;
+  if (typography.italic) css.fontStyle = 'italic';
+  if (typography.color) css.color = resolveColor(typography.color, palette);
   if (style.lineHeight !== undefined) css.lineHeight = style.lineHeight;
   if (style.letterSpacing !== undefined) css.letterSpacing = pt(style.letterSpacing);
   if (style.textTransform) css.textTransform = style.textTransform;
 
-  if (style.background) css.background = resolveColor(style.background, palette);
+  if (typography.background) css.background = resolveColor(typography.background, palette);
   if (style.borderRadius !== undefined) css.borderRadius = pt(style.borderRadius);
-  if (style.border) {
-    css.border = `${pt(style.border.width)} ${style.border.style} ${resolveColor(style.border.color, palette)}`;
+  if (typography.border) {
+    css.border = `${pt(typography.border.width)} ${typography.border.style} ${resolveColor(typography.border.color, palette)}`;
   }
   if (style.opacity !== undefined) css.opacity = style.opacity;
 

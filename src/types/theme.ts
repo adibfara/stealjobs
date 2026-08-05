@@ -53,6 +53,31 @@ export type Condition =
 export type FontRef =
   | 'instrument-sans' | 'dm-serif' | 'geist' | 'crimson-pro' | 'eb-garamond' | 'lora' | 'ubuntu';
 
+export interface TypographyStyle {
+  fontFamily?: FontRef;
+  fontSize?: number;
+  fontWeight?: 400 | 600 | 700;
+  italic?: boolean;
+  color?: ColorRef;
+  background?: ColorRef;
+  border?: { width: number; color: ColorRef; style: 'solid' | 'dashed' | 'dotted' } | null;
+}
+
+export interface StyleEntry {
+  id: string;
+  name: string;
+  typography: TypographyStyle;
+}
+
+export interface NamedStyleSet {
+  id: string;
+  name: string;
+  entries: StyleEntry[];
+  builtin?: boolean;
+  createdAt: number;
+  lastModified: number;
+}
+
 export interface NodeStyle {
   direction?: 'row' | 'column';
   wrap?: boolean;
@@ -63,6 +88,7 @@ export interface NodeStyle {
   verticalAlign?: 'start' | 'center' | 'end';
   padding?: [number, number, number, number];
   margin?: [number, number, number, number];
+  styleRef?: string;
   fontFamily?: FontRef;
   fontSize?: number;
   fontWeight?: 400 | 600 | 700;
@@ -101,6 +127,8 @@ export interface ThemeData {
   builtin?: boolean;
   palette: Palette;
   paletteId?: string;
+  styleSet: StyleEntry[];
+  styleSetId?: string;
   page: PageStyle;
   root: ThemeNode;
   createdAt: number;

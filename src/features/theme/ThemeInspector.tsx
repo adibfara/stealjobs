@@ -1,19 +1,17 @@
 import * as React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Toggle } from '@/components/ui/toggle';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Bold, Italic, AlignStartVertical, AlignCenterVertical, AlignEndVertical } from 'lucide-react';
+import { AlignStartVertical, AlignCenterVertical, AlignEndVertical } from 'lucide-react';
 import { IconPicker } from '@/features/resume/components/editor/IconPicker';
-import { FONT_OPTIONS } from './fonts';
+import { TypographyFields } from './TypographyFields';
+import { Row } from './inspectorPrimitives';
+import { PALETTE_ROLES } from './paletteRoles';
 import { availableBindings, availableRepeatOptions, ancestorScope } from './themeScope';
 import { findNode, nodePath, updateNode } from './themeTree';
-import type { Binding, ColorRole, FontRef, NodeKind, NodeStyle, RepeatSource, ThemeData, ThemeNode } from '@/types/theme';
+import type { Binding, NodeKind, NodeStyle, RepeatSource, ThemeData, ThemeNode } from '@/types/theme';
 import type { IconName } from '@/types/resume';
-
-const PALETTE_ROLES: ColorRole[] = ['background', 'surface', 'text', 'muted', 'faint', 'primary', 'accent', 'border'];
 
 const BINDING_LABEL: Record<string, string> = {
   'resume.title': 'Resume title', 'resume.subtitle': 'Resume subtitle', 'resume.photo': 'Resume photo', 'resume.name': 'Resume name',
@@ -30,17 +28,8 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-3">
-      <Label className="mb-1.5 block text-[11px] text-muted-foreground">{label}</Label>
-      {children}
-    </div>
-  );
-}
-
-export function ThemeInspector({ theme, selectedId, onChange, onSelect }: {
-  theme: ThemeData; selectedId: string | null; onChange: (root: ThemeNode) => void; onSelect: (id: string) => void;
+export function ThemeInspector({ theme, selectedId, onChange, onSelect, onEditStyle }: {
+  theme: ThemeData; selectedId: string | null; onChange: (root: ThemeNode) => void; onSelect: (id: string) => void; onEditStyle?: (entryId: string) => void;
 }) {
   const node = selectedId ? findNode(theme.root, selectedId) : null;
 
@@ -49,6 +38,10 @@ export function ThemeInspector({ theme, selectedId, onChange, onSelect }: {
   }
 
   const isContainer = node.kind === 'row' || node.kind === 'column' || node.kind === 'box';
+  const isElement = !isContainer && node.kind !== 'image';
+  const styleSet = theme.styleSet ?? [];
+  const styleEntry = isElement && node.style.styleRef ? styleSet.find(e => e.id === node.style.styleRef) : undefined;
+  const usesStyleRef = isElement && !!node.style.styleRef;
   const isRoot = node.id === theme.root.id;
   const path = nodePath(theme.root, node.id) ?? [node];
 
@@ -213,34 +206,33 @@ export function ThemeInspector({ theme, selectedId, onChange, onSelect }: {
         </>
       )}
 
-      {!isContainer && node.kind !== 'image' && (
-        <>
-          <Row label="Font">
-            <Select value={node.style.fontFamily ?? '__default'} onValueChange={v => patchStyle({ fontFamily: v === '__default' ? undefined : (v as FontRef) })}>
-              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__default">Default</SelectItem>
-                {FONT_OPTIONS.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </Row>
-          <Row label="Font size (pt)">
-            <Slider min={6} max={48} step={0.5} value={[node.style.fontSize ?? 10]} onValueChange={([v]) => patchStyle({ fontSize: v })} />
-          </Row>
-          <Row label="Weight / style">
-            <div className="flex gap-1">
-              <Toggle pressed={node.style.fontWeight === 700} onPressedChange={p => patchStyle({ fontWeight: p ? 700 : 400 })}><Bold className="h-3.5 w-3.5" /></Toggle>
-              <Toggle pressed={!!node.style.italic} onPressedChange={p => patchStyle({ italic: p })}><Italic className="h-3.5 w-3.5" /></Toggle>
-            </div>
-          </Row>
-          <Row label="Text color">
-            <div className="flex flex-wrap gap-1">
-              {PALETTE_ROLES.map(r => (
-                <button key={r} type="button" onClick={() => patchStyle({ color: r })} className="h-6 w-6 rounded-full border border-border" style={{ background: theme.palette[r], outline: node.style.color === r ? '2px solid var(--primary,#2563eb)' : undefined }} title={r} />
-              ))}
-            </div>
-          </Row>
-        </>
+      {isElement && (
+        <Row label="Style">
+          <Select value={node.style.styleRef ?? '__custom'} onValueChange={v => patchStyle({ styleRef: v === '__custom' ? undefined : v })}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__custom">Custom</SelectItem>
+              {styleSet.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Row>
+      )}
+
+      {usesStyleRef && (
+        <Row label="Typography (from style)">
+          <div className="flex items-center justify-between rounded-md border border-border px-2 py-1.5 text-xs">
+            <span className="truncate">{styleEntry ? styleEntry.name : 'Style not found'}</span>
+            {onEditStyle && (
+              <button type="button" onClick={() => onEditStyle(node.style.styleRef!)} className="text-primary hover:underline">
+                Edit style
+              </button>
+            )}
+          </div>
+        </Row>
+      )}
+
+      {isElement && !usesStyleRef && (
+        <TypographyFields value={node.style} onChange={patch => patchStyle(patch)} palette={theme.palette} />
       )}
 
       <Row label={`Padding (pt) — ${node.style.padding?.[0] ?? 0}`}>
@@ -249,14 +241,46 @@ export function ThemeInspector({ theme, selectedId, onChange, onSelect }: {
       <Row label={`Margin (pt) — ${node.style.margin?.[0] ?? 0}`}>
         <Slider min={0} max={60} step={0.1} value={[node.style.margin?.[0] ?? 0]} onValueChange={([v]) => patchStyle({ margin: [v, v, v, v] })} />
       </Row>
-      <Row label="Background">
-        <div className="flex flex-wrap gap-1">
-          <button type="button" onClick={() => patchStyle({ background: undefined })} className="h-6 w-6 rounded-full border border-dashed border-border text-[8px]" title="None">✕</button>
-          {PALETTE_ROLES.map(r => (
-            <button key={r} type="button" onClick={() => patchStyle({ background: r })} className="h-6 w-6 rounded-full border border-border" style={{ background: theme.palette[r], outline: node.style.background === r ? '2px solid var(--primary,#2563eb)' : undefined }} title={r} />
-          ))}
-        </div>
-      </Row>
+
+      {(isContainer || node.kind === 'image') && (
+        <>
+          <Row label="Background">
+            <div className="flex flex-wrap gap-1">
+              <button type="button" onClick={() => patchStyle({ background: undefined })} className="h-6 w-6 rounded-full border border-dashed border-border text-[8px]" title="None">✕</button>
+              {PALETTE_ROLES.map(r => (
+                <button key={r} type="button" onClick={() => patchStyle({ background: r })} className="h-6 w-6 rounded-full border border-border" style={{ background: theme.palette[r], outline: node.style.background === r ? '2px solid var(--primary,#2563eb)' : undefined }} title={r} />
+              ))}
+            </div>
+          </Row>
+          <Row label="Border">
+            <div className="flex flex-col gap-1.5">
+              <div className="flex flex-wrap gap-1">
+                <button type="button" onClick={() => patchStyle({ border: null })} className="h-6 w-6 rounded-full border border-dashed border-border text-[8px]" title="None">✕</button>
+                {PALETTE_ROLES.map(r => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => patchStyle({ border: { width: node.style.border?.width ?? 1, style: node.style.border?.style ?? 'solid', color: r } })}
+                    className="h-6 w-6 rounded-full border border-border"
+                    style={{ background: theme.palette[r], outline: node.style.border && node.style.border.color === r ? '2px solid var(--primary,#2563eb)' : undefined }}
+                    title={r}
+                  />
+                ))}
+              </div>
+              {node.style.border && (
+                <>
+                  <Slider min={0.5} max={8} step={0.5} value={[node.style.border.width]} onValueChange={([v]) => patchStyle({ border: { ...node.style.border!, width: v } })} />
+                  <ToggleGroup type="single" value={node.style.border.style} onValueChange={v => v && patchStyle({ border: { ...node.style.border!, style: v as 'solid' | 'dashed' | 'dotted' } })} className="w-full">
+                    <ToggleGroupItem value="solid" className="flex-1 text-xs">Solid</ToggleGroupItem>
+                    <ToggleGroupItem value="dashed" className="flex-1 text-xs">Dashed</ToggleGroupItem>
+                    <ToggleGroupItem value="dotted" className="flex-1 text-xs">Dotted</ToggleGroupItem>
+                  </ToggleGroup>
+                </>
+              )}
+            </div>
+          </Row>
+        </>
+      )}
       {node.kind !== 'image' && (
         <Row label={`Corner radius (pt) — ${node.style.borderRadius ?? 0}`}>
           <Slider min={0} max={50} step={0.1} value={[node.style.borderRadius ?? 0]} onValueChange={([v]) => patchStyle({ borderRadius: v })} />
