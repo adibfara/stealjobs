@@ -25,6 +25,7 @@ import { downloadAppBackup, copyAppBackupToClipboard, restoreAppBackup } from '@
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 import { ApplicationsSection } from './ApplicationsSection';
 import { ExperiencesSection } from './ExperiencesSection';
+import { ThemesPage } from '@/features/theme/ThemesPage';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -526,6 +527,7 @@ export function ResumesPage() {
                 <TabsTrigger value="applications">Applications</TabsTrigger>
                 <TabsTrigger value="experiences">Experiences</TabsTrigger>
                 <TabsTrigger value="resumes">Resumes</TabsTrigger>
+                <TabsTrigger value="themes">Themes</TabsTrigger>
               </TabsList>
             </div>
             <h1 className="text-center text-xl font-bold tracking-tight">Jobs</h1>
@@ -635,6 +637,10 @@ export function ResumesPage() {
               onExport={r => exportResumeAsJson(r)}
               creating={!!creating}
             />
+          </TabsContent>
+
+          <TabsContent value="themes">
+            <ThemesPage />
           </TabsContent>
         </main>
       </Tabs>

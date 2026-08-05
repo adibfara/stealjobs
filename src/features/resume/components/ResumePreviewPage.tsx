@@ -6,6 +6,10 @@ import { getResume } from '@/lib/resumeStorage';
 import { TEMPLATES, COVER_LETTER_TEMPLATES, getTemplate, getCoverLetterTemplate } from './templates';
 import { exportToWord } from '@/lib/wordExport';
 import type { ResumeData } from '@/types/resume';
+import { getThemes, resolveTheme } from '@/lib/themeStorage';
+import { modernRowTheme } from '@/features/theme/builtinThemes';
+import { ThemeRenderer } from '@/features/theme/ThemeRenderer';
+import type { ThemeData } from '@/types/theme';
 
 function printResume(resume: ResumeData) {
   const prev = document.title;
@@ -21,6 +25,11 @@ export function ResumePreviewPage() {
   const [resume, setResume] = React.useState<ResumeData | null>(null);
   const [templateId, setTemplateId] = React.useState('modern-row');
   const [showTemplateMenu, setShowTemplateMenu] = React.useState(false);
+  const [customThemes, setCustomThemes] = React.useState<ThemeData[]>([]);
+
+  React.useEffect(() => {
+    getThemes().then(setCustomThemes);
+  }, []);
 
   // Load resume once
   React.useEffect(() => {
@@ -44,9 +53,17 @@ export function ResumePreviewPage() {
   }, [resumeId]);
 
   const isCoverLetter = resume?.type === 'coverletter';
-  const availableTemplates = isCoverLetter ? COVER_LETTER_TEMPLATES : TEMPLATES;
-  const template = isCoverLetter ? getCoverLetterTemplate(templateId) : getTemplate(templateId);
-  const TemplateComponent = template.component;
+  const codeTemplates = isCoverLetter ? COVER_LETTER_TEMPLATES : TEMPLATES;
+  const themeOptions = isCoverLetter ? [] : [modernRowTheme, ...customThemes];
+  const availableOptions = [
+    ...codeTemplates.map(t => ({ id: t.id, name: t.name })),
+    ...themeOptions.map(t => ({ id: t.id, name: t.name })),
+  ];
+
+  const activeTheme = !isCoverLetter ? resolveTheme(templateId, customThemes) : null;
+  const codeTemplateFallback = isCoverLetter ? getCoverLetterTemplate(templateId) : getTemplate(templateId);
+  const template = activeTheme ? { id: activeTheme.id, name: activeTheme.name } : codeTemplateFallback;
+  const TemplateComponent = activeTheme ? null : codeTemplateFallback.component;
 
   if (!resume) return null;
 
@@ -77,7 +94,7 @@ export function ResumePreviewPage() {
                 onClick={() => setShowTemplateMenu(false)}
               />
               <div className="absolute right-0 top-full z-20 mt-1 w-40 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
-                {availableTemplates.map(t => (
+                {availableOptions.map(t => (
                   <button
                     key={t.id}
                     type="button"
@@ -113,14 +130,14 @@ export function ResumePreviewPage() {
           className="resume-paper w-full shadow-2xl"
           style={{ maxWidth: '850px', backgroundColor: '#fff', minHeight: '1100px' }}
         >
-          <TemplateComponent resume={resume} />
+          {activeTheme ? <ThemeRenderer theme={activeTheme} resume={resume} /> : TemplateComponent && <TemplateComponent resume={resume} />}
         </div>
       </div>
 
       {/* Print-only render: full page, no wrapper */}
       <div className="print-only hidden">
         <div id="resume-print-area-print">
-          <TemplateComponent resume={resume} />
+          {activeTheme ? <ThemeRenderer theme={activeTheme} resume={resume} /> : TemplateComponent && <TemplateComponent resume={resume} />}
         </div>
       </div>
     </>
