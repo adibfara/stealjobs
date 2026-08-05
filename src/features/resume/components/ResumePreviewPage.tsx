@@ -7,7 +7,7 @@ import { TEMPLATES, COVER_LETTER_TEMPLATES, getTemplate, getCoverLetterTemplate 
 import { exportToWord } from '@/lib/wordExport';
 import type { ResumeData } from '@/types/resume';
 import { getThemes, resolveTheme } from '@/lib/themeStorage';
-import { modernRowTheme } from '@/features/theme/builtinThemes';
+import { builtinThemes } from '@/features/theme/builtinThemes';
 import { ThemeRenderer } from '@/features/theme/ThemeRenderer';
 import type { ThemeData } from '@/types/theme';
 
@@ -54,9 +54,10 @@ export function ResumePreviewPage() {
 
   const isCoverLetter = resume?.type === 'coverletter';
   const codeTemplates = isCoverLetter ? COVER_LETTER_TEMPLATES : TEMPLATES;
-  const themeOptions = isCoverLetter ? [] : [modernRowTheme, ...customThemes];
+  const themeOptions = isCoverLetter ? [] : [...builtinThemes, ...customThemes];
+  const themeIds = new Set(themeOptions.map(t => t.id));
   const availableOptions = [
-    ...codeTemplates.map(t => ({ id: t.id, name: t.name })),
+    ...codeTemplates.filter(t => !themeIds.has(t.id)).map(t => ({ id: t.id, name: t.name })),
     ...themeOptions.map(t => ({ id: t.id, name: t.name })),
   ];
 

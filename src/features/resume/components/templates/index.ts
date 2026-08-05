@@ -1,6 +1,4 @@
-import { ModernTemplate } from './ModernTemplate';
 import { ModernRowTemplate } from './ModernRowTemplate';
-import { ProfessionalTemplate } from './ProfessionalTemplate';
 import { CoverLetterTemplate } from './CoverLetterTemplate';
 import type { ResumeData } from '@/types/resume';
 import type { ComponentType } from 'react';
@@ -11,10 +9,11 @@ export interface TemplateDefinition {
   component: ComponentType<{ resume: ResumeData }>;
 }
 
+// 'modern' and 'professional' are now editable JSON themes (see builtinThemes.ts),
+// sharing their ids so resumes with those selectedTemplate values keep resolving —
+// now via ThemeRenderer instead of legacy components.
 export const TEMPLATES: TemplateDefinition[] = [
   { id: 'modern-row', name: 'Modern Row', component: ModernRowTemplate },
-  { id: 'modern', name: 'Modern', component: ModernTemplate },
-  { id: 'professional', name: 'Professional', component: ProfessionalTemplate },
 ];
 
 export const COVER_LETTER_TEMPLATES: TemplateDefinition[] = [
@@ -29,4 +28,4 @@ export function getCoverLetterTemplate(id: string): TemplateDefinition {
   return COVER_LETTER_TEMPLATES.find(t => t.id === id) ?? COVER_LETTER_TEMPLATES[0];
 }
 
-export { ModernTemplate, ModernRowTemplate, ProfessionalTemplate, CoverLetterTemplate };
+export { ModernRowTemplate, CoverLetterTemplate };

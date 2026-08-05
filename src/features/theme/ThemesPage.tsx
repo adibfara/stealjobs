@@ -18,7 +18,7 @@ import {
   exportThemeAsJson,
   importThemeFromFile,
 } from '@/lib/themeStorage';
-import { modernRowTheme } from './builtinThemes';
+import { modernRowTheme, builtinThemes } from './builtinThemes';
 import { PaletteLibraryDialog } from './palettes';
 import { StyleLibraryDialog } from './styles';
 import type { ThemeData } from '@/types/theme';
@@ -213,7 +213,7 @@ export function ThemesPage() {
 
   React.useEffect(() => { refresh(); }, []);
 
-  const allThemes = [modernRowTheme, ...themes];
+  const allThemes = [...builtinThemes, ...themes];
 
   async function handleNew() {
     const t = createTheme('Untitled Theme', modernRowTheme);

@@ -9,7 +9,7 @@ import {
 import { db, requireUid } from './firebase';
 import { genId } from './resumeStorage';
 import type { ThemeData, ThemeNode } from '@/types/theme';
-import { modernRowTheme } from '@/features/theme/builtinThemes';
+import { modernRowTheme, builtinThemes } from '@/features/theme/builtinThemes';
 
 function themesCol(uid: string) {
   return collection(db, 'users', uid, 'themes');
@@ -102,6 +102,5 @@ export function importThemeFromFile(file: File): Promise<ThemeData> {
 export function resolveTheme(id: string, customList: ThemeData[]): ThemeData | null {
   const custom = customList.find(t => t.id === id);
   if (custom) return custom;
-  if (id === modernRowTheme.id) return modernRowTheme;
-  return null;
+  return builtinThemes.find(t => t.id === id) ?? null;
 }

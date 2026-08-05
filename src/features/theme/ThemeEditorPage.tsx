@@ -9,7 +9,7 @@ import { getTheme, getThemes, saveTheme, createTheme } from '@/lib/themeStorage'
 import { getPalettes, resolvePalette } from '@/lib/paletteStorage';
 import { getStyleSets, resolveStyleSet } from '@/lib/styleStorage';
 import { defaultStyleSet } from './builtinStyles';
-import { modernRowTheme } from './builtinThemes';
+import { builtinThemes } from './builtinThemes';
 import { PalettePopover } from './palettes';
 import { StyleDialog, StylePopover } from './styles';
 import { ThemeRenderer } from './ThemeRenderer';
@@ -36,7 +36,7 @@ export function ThemeEditorPage() {
   const navigate = useNavigate();
   const [theme, setTheme] = React.useState<ThemeData | null>(null);
   const [isCustom, setIsCustom] = React.useState(false);
-  const [allThemes, setAllThemes] = React.useState<ThemeData[]>([modernRowTheme]);
+  const [allThemes, setAllThemes] = React.useState<ThemeData[]>(builtinThemes);
   const [resumes, setResumes] = React.useState<ResumeData[]>([]);
   const [sampleId, setSampleId] = React.useState('');
   const [editingName, setEditingName] = React.useState(false);
@@ -65,8 +65,8 @@ export function ThemeEditorPage() {
       if (custom) {
         loaded = custom;
         setIsCustom(true);
-      } else if (themeId === modernRowTheme.id) {
-        loaded = modernRowTheme;
+      } else if (builtinThemes.some(t => t.id === themeId)) {
+        loaded = builtinThemes.find(t => t.id === themeId)!;
         setIsCustom(false);
       } else {
         navigate({ to: '/', search: { tab: 'themes' } });
@@ -90,7 +90,7 @@ export function ThemeEditorPage() {
       setTheme(loaded);
       const customThemes = await getThemes();
       if (cancelled) return;
-      setAllThemes([modernRowTheme, ...customThemes]);
+      setAllThemes([...builtinThemes, ...customThemes]);
       const list = await getResumes();
       if (cancelled) return;
       setResumes(list);
