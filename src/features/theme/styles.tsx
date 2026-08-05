@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Check, Copy, Lock, Plus, Trash2, Type as TypeIcon, X } from 'lucide-react';
+import { Check, Copy, Lock, Pencil, Plus, Trash2, Type as TypeIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TypographyFields } from './TypographyFields';
 import { defaultStyleSet, builtinStyleSets } from './builtinStyles';
 import { getStyleSets, saveStyleSet, deleteStyleSet, createStyleSet } from '@/lib/styleStorage';
@@ -81,6 +82,65 @@ function StyleSetRow({ styleSet, active, selected, onSelect, onApply, onDuplicat
         </button>
       )}
     </div>
+  );
+}
+
+interface StylePopoverProps {
+  theme: ThemeData;
+  onChange: (theme: ThemeData) => void;
+  onEdit: () => void;
+}
+
+export function StylePopover({ theme, onChange, onEdit }: StylePopoverProps) {
+  const { styleSets } = useStyleLibrary();
+  const committedRef = React.useRef({ styleSet: theme.styleSet, styleSetId: theme.styleSetId });
+  const activeId = theme.styleSetId ?? defaultStyleSet.id;
+
+  React.useEffect(() => {
+    committedRef.current = { styleSet: theme.styleSet, styleSetId: theme.styleSetId };
+  }, [theme.styleSet, theme.styleSetId]);
+
+  function preview(s: NamedStyleSet) {
+    onChange({ ...theme, styleSet: s.entries, styleSetId: s.id });
+  }
+
+  function revert() {
+    onChange({ ...theme, styleSet: committedRef.current.styleSet, styleSetId: committedRef.current.styleSetId });
+  }
+
+  function select(s: NamedStyleSet) {
+    committedRef.current = { styleSet: s.entries, styleSetId: s.id };
+    onChange({ ...theme, styleSet: s.entries, styleSetId: s.id });
+  }
+
+  return (
+    <Popover onOpenChange={o => { if (!o) revert(); }}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm">
+          <TypeIcon className="mr-1.5 h-4 w-4" /> Styles
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-2" align="end" onMouseLeave={revert}>
+        <div className="flex flex-col gap-1">
+          {styleSets.map(s => (
+            <div
+              key={s.id}
+              onMouseEnter={() => preview(s)}
+              onClick={() => select(s)}
+              className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs ${s.id === activeId ? 'bg-primary/10 text-primary' : 'hover:bg-accent'}`}
+            >
+              <span className="flex-1 truncate">{s.name}</span>
+              {s.id === activeId && <Check className="h-3.5 w-3.5 shrink-0" />}
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 border-t border-border pt-2">
+          <Button size="sm" variant="outline" className="w-full" onClick={onEdit}>
+            <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

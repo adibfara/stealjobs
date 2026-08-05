@@ -23,6 +23,7 @@ export function imageDimensionStyle(style: NodeStyle): React.CSSProperties {
   return {
     width: pt(style.imageWidth ?? 60),
     height: pt(style.imageHeight ?? 60),
+    maxWidth: 'none',
     objectFit: 'cover',
     borderRadius: style.imageCircle ? '50%' : (style.imageRadius !== undefined ? pt(style.imageRadius) : undefined),
   };

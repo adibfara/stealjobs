@@ -45,15 +45,17 @@ interface PaletteRowProps {
   palette: NamedPalette;
   active?: boolean;
   onApply?: () => void;
+  onHover?: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }
 
-function PaletteRow({ palette, active, onApply, onDuplicate, onDelete }: PaletteRowProps) {
+function PaletteRow({ palette, active, onApply, onHover, onDuplicate, onDelete }: PaletteRowProps) {
   return (
     <div
       className={`flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs ${active ? 'border-primary bg-primary/5' : 'border-border'} ${onApply ? 'cursor-pointer hover:bg-accent' : ''}`}
       onClick={onApply}
+      onMouseEnter={onHover}
     >
       <PaletteSwatches colors={palette.colors} />
       <span className="flex-1 truncate">{palette.name}</span>
@@ -91,6 +93,15 @@ interface PalettePopoverProps {
 
 export function PalettePopover({ theme, onChange }: PalettePopoverProps) {
   const { palettes, refresh } = usePaletteLibrary();
+  const committedRef = React.useRef({ palette: theme.palette, paletteId: theme.paletteId });
+
+  function previewPalette(p: NamedPalette) {
+    onChange({ ...theme, palette: p.colors, paletteId: p.id });
+  }
+
+  function revert() {
+    onChange({ ...theme, palette: committedRef.current.palette, paletteId: committedRef.current.paletteId });
+  }
 
   function updateColor(role: ColorRole, hex: string) {
     const nextColors = { ...theme.palette, [role]: hex };
@@ -99,6 +110,7 @@ export function PalettePopover({ theme, onChange }: PalettePopoverProps) {
     if (linked && !linked.builtin) {
       const updated: NamedPalette = { ...linked, colors: nextColors };
       void savePalette(updated).then(refresh);
+      committedRef.current = { palette: nextColors, paletteId: theme.paletteId };
       onChange({ ...theme, palette: nextColors });
       return;
     }
@@ -106,14 +118,17 @@ export function PalettePopover({ theme, onChange }: PalettePopoverProps) {
     if (linked?.builtin) {
       const forked = createPalette(`${linked.name} (copy)`, nextColors);
       void savePalette(forked).then(refresh);
+      committedRef.current = { palette: nextColors, paletteId: forked.id };
       onChange({ ...theme, palette: nextColors, paletteId: forked.id });
       return;
     }
 
+    committedRef.current = { palette: nextColors, paletteId: theme.paletteId };
     onChange({ ...theme, palette: nextColors });
   }
 
   function applyPalette(p: NamedPalette) {
+    committedRef.current = { palette: p.colors, paletteId: p.id };
     onChange({ ...theme, palette: p.colors, paletteId: p.id });
   }
 
@@ -121,6 +136,7 @@ export function PalettePopover({ theme, onChange }: PalettePopoverProps) {
     const p = createPalette(`${theme.name} palette`, theme.palette);
     await savePalette(p);
     await refresh();
+    committedRef.current = { palette: theme.palette, paletteId: p.id };
     onChange({ ...theme, paletteId: p.id });
   }
 
@@ -138,13 +154,21 @@ export function PalettePopover({ theme, onChange }: PalettePopoverProps) {
   }
 
   return (
-    <Popover>
+    <Popover
+      onOpenChange={o => {
+        if (o) {
+          committedRef.current = { palette: theme.palette, paletteId: theme.paletteId };
+        } else {
+          revert();
+        }
+      }}
+    >
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm">
           <PaletteIcon className="mr-1.5 h-4 w-4" /> Palette
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-3" align="end">
+      <PopoverContent className="w-72 p-3" align="end" onMouseLeave={revert}>
         <div className="flex flex-col gap-3">
           <div>
             <p className="mb-1.5 text-xs font-medium text-muted-foreground">Current colors</p>
@@ -168,6 +192,7 @@ export function PalettePopover({ theme, onChange }: PalettePopoverProps) {
                   key={p.id}
                   palette={p}
                   active={p.id === theme.paletteId}
+                  onHover={() => previewPalette(p)}
                   onApply={() => applyPalette(p)}
                   onDuplicate={() => duplicatePalette(p)}
                   onDelete={() => removePalette(p)}
